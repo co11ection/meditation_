@@ -10,7 +10,7 @@ class Users(models.Model):
     is_active = models.BooleanField(blank=True, default=True, verbose_name='Статус блокировки')
     phone_number = models.CharField(max_length=100, blank=True, null=True, verbose_name='Телефон', unique=True)
     email = models.CharField(max_length=100, blank=True, null=True, verbose_name='Почта')
-    code = models.IntegerField(blank=True, null=True)
+    sms_code = models.IntegerField(blank=True, null=True)
     fcm_token = models.CharField(max_length=500, null=True, blank=True)
 
     class Meta:

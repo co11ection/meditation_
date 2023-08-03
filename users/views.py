@@ -20,8 +20,20 @@ def registration(request: HttpRequest):
         # if not (utils.is_phone_number(values['login']) or utils.is_email(values['login'])):
         #     return HttpResponseBadRequest("login must be email or phone number")
         login = values['login']
+        if not (utils.is_phone_number(login) or utils.is_email(login)):
+            return Response({"login must be email or phone number"}, status=status.HTTP_400_BAD_REQUEST)
         if utils.is_phone_number(login):
             if Users.objects.filter(phone_number__contains=utils.ru_phone(login)):
+                user = db.get_user(login=login)
+                user.fcm_token = values['fcm_token']
+                user.save()
+                return JsonResponse({
+                    'authorized': True,
+                    'token': user.token,
+                    "id": user.id,
+                })
+        if utils.is_email(login):
+            if Users.objects.filter(phone_number__contains=login):
                 user = db.get_user(login=login)
                 user.fcm_token = values['fcm_token']
                 user.save()
