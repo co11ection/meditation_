@@ -12,6 +12,8 @@ class Users(models.Model):
     email = models.CharField(max_length=100, blank=True, null=True, verbose_name='Почта')
     sms_code = models.IntegerField(blank=True, null=True)
     fcm_token = models.CharField(max_length=500, null=True, blank=True)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
 
     class Meta:
         managed = True
