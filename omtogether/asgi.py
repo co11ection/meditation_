@@ -1,5 +1,5 @@
 """
-ASGI config for backend_omtogether project.
+ASGI config for omtogether project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend_omtogether.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'omtogether.settings')
 
 application = get_asgi_application()

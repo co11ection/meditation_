@@ -2,7 +2,7 @@ import re
 import jwt
 from time import time
 
-from backend_omtogether.settings import SECRET_KEY
+from omtogether.settings import SECRET_KEY
 
 
 def is_email(string: str):
