@@ -23,7 +23,9 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "omtogether.settings")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
-environ.Env.read_env()
+# environ.Env.read_env()
+env.read_env()
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
