@@ -27,8 +27,9 @@ def registration(request):
         values = request.data
         login = values.get('login')
         if not (is_phone_number(login) or is_email(login)):
-            return Response({"error": "Логин должен быть электронной почтой или номером телефона"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "error": "Логин должен быть электронной почтой или номером телефона"},
+                status=status.HTTP_400_BAD_REQUEST)
 
         if is_phone_number(login):
             login = ru_phone(login)
@@ -119,3 +120,61 @@ def calculate_tokens(request):
     except Exception as e:
         return Response({"error": f"Что-то пошло не так: {e}"},
                         status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def user_profile(request, pk):
+    """
+    Получить, обновить или удалить профиль пользователя.
+
+    Параметры:
+    - request: объект запроса Django REST framework.
+    - pk (int): ID пользователя.
+
+    Методы:
+    - GET: Получить информацию о пользователе.
+    - PUT: Обновить информацию о пользователе.
+    - DELETE: Удалить пользователя.
+
+    Возвращает:
+    - Ответ с данными пользователя в случае GET и PUT.
+    - Пустой ответ в случае успешного удаления пользователя.
+    - Ответ с ошибкой "Пользователь не найден" в случае отсутствия пользователя с указанным ID.
+
+    Пример запроса GET:
+    GET /api/users/1/
+    Возвращает данные пользователя с ID=1.
+
+    Пример запроса PUT:
+    PUT /api/users/1/
+    {
+        "username": "Новое имя пользователя",
+        "email": "новаяпочта@example.com",
+        ...
+    }
+    Обновляет информацию о пользователе с ID=1.
+
+    Пример запроса DELETE:
+    DELETE /api/users/1/
+    Удаляет пользователя с ID=1.
+    """
+    try:
+        user = Users.objects.get(pk=pk)
+    except Users.DoesNotExist:
+        return Response({"error": "Пользователь не найден."},
+                        status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = UsersSerializer(user)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = UsersSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

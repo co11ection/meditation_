@@ -7,6 +7,7 @@ urlpatterns = [
     # path('registration_get_code', views.registration_get_code),
     path('registration', views.registration),
     path('calculate_tokens/', views.calculate_tokens, name='calculate_tokens'),
+    path('api/users/<int:pk>/', views.user_profile, name='user_profile'),
     # path('auth', views.auth),
     # path('delete_user', views.delete_user),
     # path('get_user', views.get_user),

@@ -1,6 +1,6 @@
 from django.db import models
 
-from OMTOGETHER.users.models import Users
+from users.models import Users
 
 
 # Create your models here.
