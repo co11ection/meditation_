@@ -5,7 +5,7 @@ app_name = 'users'
 
 urlpatterns = [
     # path('registration_get_code', views.registration_get_code),
-    path('registration', views.registration),
+    path('registration', views.registration, name='registration'),
     path('calculate_tokens/', views.calculate_tokens, name='calculate_tokens'),
     # path('auth', views.auth),
     # path('delete_user', views.delete_user),

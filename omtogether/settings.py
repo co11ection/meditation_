@@ -16,7 +16,6 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework.permissions import AllowAny
 
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "omtogether.settings")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,11 +29,8 @@ environ.Env.read_env()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '%-8uc07o(1_-a8!=e0!dq2hcth6tmghqm*&3%589p3c3+7is6v'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+DEBUG = env.bool('DEBUG', default=False)
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # Application definition
 
@@ -87,10 +83,7 @@ WSGI_APPLICATION = 'omtogether.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db()
 }
 
 # Password validation
