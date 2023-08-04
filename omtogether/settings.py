@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
     'onboarding.apps.OnboardingConfig',
+    'meditacia.apps.MeditaciaConfig',
+
     'rest_framework',
     'drf_yasg',
 
