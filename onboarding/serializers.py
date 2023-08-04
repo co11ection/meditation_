@@ -1,8 +1,20 @@
 from rest_framework import serializers
-from .models import OnboardingText
+from .models import ChatMessage, OnboardingText, Complaint
 
 
 class OnboardingTextSerializer(serializers.ModelSerializer):
     class Meta:
         model = OnboardingText
+        fields = '__all__'
+
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMessage
+        fields = '__all__'
+
+
+class ComplaintSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Complaint
         fields = '__all__'

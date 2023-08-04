@@ -2,8 +2,12 @@ from django.http import Http404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .models import OnboardingText
-from .serializers import OnboardingTextSerializer
+
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .models import ChatMessage, OnboardingText, Complaint
+from .serializers import ChatMessageSerializer, OnboardingTextSerializer, \
+    ComplaintSerializer
 
 
 class OnboardingTextAPIView(APIView):
@@ -34,7 +38,8 @@ class OnboardingTextDetailView(APIView):
 
     def put(self, request, pk):
         onboarding_text = self.get_object(pk)
-        serializer = OnboardingTextSerializer(onboarding_text, data=request.data)
+        serializer = OnboardingTextSerializer(onboarding_text,
+                                              data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -44,3 +49,15 @@ class OnboardingTextDetailView(APIView):
         onboarding_text = self.get_object(pk)
         onboarding_text.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ChatMessageView(generics.ListCreateAPIView):
+    queryset = ChatMessage.objects.all()
+    serializer_class = ChatMessageSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class ComplaintView(generics.ListCreateAPIView):
+    queryset = Complaint.objects.all()
+    serializer_class = ComplaintSerializer
+    permission_classes = [IsAuthenticated]

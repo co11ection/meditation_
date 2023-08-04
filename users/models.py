@@ -30,3 +30,5 @@ class CodePhone(models.Model):
     code = models.IntegerField(blank=True, null=True)
     is_confirmed = models.BooleanField(max_length=100, blank=True, null=True, default=False)
     time = models.DateTimeField(auto_now=True)
+
+
