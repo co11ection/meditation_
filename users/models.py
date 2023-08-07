@@ -26,6 +26,11 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    ROLE_CHOICES = (
+        ('user', 'Пользователь'),
+        ('admin', 'Администратор'),
+        ('moderator', 'Модератор'),
+    )
     login = models.CharField(max_length=100, unique=True, verbose_name='Логин')
     nickname = models.CharField(max_length=100, blank=True, null=True, verbose_name='Никнейм')
     password = models.CharField(max_length=500, blank=True, null=True)
@@ -36,6 +41,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.CharField(max_length=100, blank=True, null=True, verbose_name='Почта')
     fcm_token = models.CharField(max_length=500, null=True, blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    role = models.CharField(default='user', choices=ROLE_CHOICES, max_length=12)
 
     objects = CustomUserManager()
 
@@ -48,6 +54,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = 'Пользователи'
         verbose_name = 'Пользователь'
 
+    @property
+    def is_admin(self):
+        return self.role == 'admin'
+
+    @property
+    def is_moderator(self):
+        return self.role == 'moderator'
+
+    @property
+    def is_user(self):
+        return self.role == 'user'
+
     def __str__(self):
         return f"{self.login}"
 
@@ -57,5 +75,3 @@ class CodePhone(models.Model):
     code = models.IntegerField(blank=True, null=True)
     is_confirmed = models.BooleanField(max_length=100, blank=True, null=True, default=False)
     time = models.DateTimeField(auto_now=True)
-
-
