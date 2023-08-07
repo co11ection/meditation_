@@ -47,26 +47,3 @@ class Complaint(models.Model):
         verbose_name = 'Жалоба'
         verbose_name_plural = 'Жалобы'
 
-
-class Moderator(models.Model):
-    user = models.OneToOneField(Users, on_delete=models.CASCADE,
-                                verbose_name='Пользователь')
-
-    def __str__(self):
-        return self.user.username
-
-    class Meta:
-        verbose_name = 'Модератор'
-        verbose_name_plural = 'Модераторы'
-
-
-class Administrator(models.Model):
-    user = models.OneToOneField(Users, on_delete=models.CASCADE,
-                                verbose_name='Пользователь')
-
-    def __str__(self):
-        return self.user.username
-
-    class Meta:
-        verbose_name = 'Администратор'
-        verbose_name_plural = 'Администраторы'
