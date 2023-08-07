@@ -2,9 +2,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Users
+from .models import CustomUser
 from .serializers import UsersSerializer
-from .utils import is_phone_number, is_email, ru_phone, calculate_token
+from .utils import is_phone_number, is_email, ru_phone
+from .db_communication import add_user
 
 
 @api_view(['POST'])
@@ -33,9 +34,9 @@ def registration(request):
 
         if is_phone_number(login):
             login = ru_phone(login)
-            user = Users.objects.filter(phone_number=login).first()
+            user = CustomUser.objects.filter(phone_number=login).first()
         else:
-            user = Users.objects.filter(email=login).first()
+            user = CustomUser.objects.filter(email=login).first()
 
         if user:
             user.fcm_token = values.get('fcm_token')
@@ -55,25 +56,6 @@ def registration(request):
     except Exception as err:
         return Response({"error": f"Что-то пошло не так: {err}"},
                         status=status.HTTP_400_BAD_REQUEST)
-
-
-def add_user(values, ref):
-    """
-    Добавление нового пользователя в базу данных.
-
-    Параметры:
-    - values (dict): Данные пользователя (имя пользователя, логин, пароль и т.д.).
-    - ref (str): Код реферала (необязательно).
-
-    Возвращает:
-    - token (str): Сгенерированный токен для нового пользователя.
-    - user (Users): Вновь созданный экземпляр пользователя.
-    """
-    # Ваша логика функции add_user здесь
-    # Рассчитайте токен с помощью функции calculate_token
-    # Создайте экземпляр пользователя и сохраните его
-    # Верните токен и экземпляр пользователя
-    pass
 
 
 @api_view(['POST'])
@@ -101,7 +83,7 @@ def calculate_tokens(request):
         k = request.data.get('k', 0)
 
         # Получаем пользователя по ID
-        user = Users.objects.get(pk=user_id)
+        user = CustomUser.objects.get(pk=user_id)
 
         # Рассчитываем количество токенов
         n = base_value + booster + degradation
@@ -114,7 +96,7 @@ def calculate_tokens(request):
         serializer = UsersSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    except Users.DoesNotExist:
+    except CustomUser.DoesNotExist:
         return Response({"error": "Пользователь не найден."},
                         status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
@@ -159,8 +141,8 @@ def user_profile(request, pk):
     Удаляет пользователя с ID=1.
     """
     try:
-        user = Users.objects.get(pk=pk)
-    except Users.DoesNotExist:
+        user = CustomUser.objects.get(pk=pk)
+    except CustomUser.DoesNotExist:
         return Response({"error": "Пользователь не найден."},
                         status=status.HTTP_404_NOT_FOUND)
 

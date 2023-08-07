@@ -1,6 +1,6 @@
 from django.db import models
 
-from users.models import Users
+from users.models import CustomUser
 
 
 # Create your models here.
@@ -19,14 +19,14 @@ class OnboardingText(models.Model):
 
 
 class ChatMessage(models.Model):
-    user = models.ForeignKey(Users, on_delete=models.CASCADE,
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
                              verbose_name='Пользователь')
     message = models.TextField(verbose_name='Сообщение')
     created_at = models.DateTimeField(auto_now_add=True,
                                       verbose_name='Время создания')
 
     def __str__(self):
-        return f"{self.user.username}: {self.message}"
+        return f"{self.user.nickname}: {self.message}"
 
     class Meta:
         verbose_name = 'Сообщение чата'
@@ -34,14 +34,14 @@ class ChatMessage(models.Model):
 
 
 class Complaint(models.Model):
-    user = models.ForeignKey(Users, on_delete=models.CASCADE,
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
                              verbose_name='Пользователь')
     text = models.TextField(verbose_name='Текст жалобы')
     created_at = models.DateTimeField(auto_now_add=True,
                                       verbose_name='Время создания')
 
     def __str__(self):
-        return f"{self.user.username}: {self.text}"
+        return f"{self.user.nickname}: {self.text}"
 
     class Meta:
         verbose_name = 'Жалоба'
@@ -49,11 +49,11 @@ class Complaint(models.Model):
 
 
 class Moderator(models.Model):
-    user = models.OneToOneField(Users, on_delete=models.CASCADE,
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,
                                 verbose_name='Пользователь')
 
     def __str__(self):
-        return self.user.username
+        return self.user.nickname
 
     class Meta:
         verbose_name = 'Модератор'
@@ -61,11 +61,11 @@ class Moderator(models.Model):
 
 
 class Administrator(models.Model):
-    user = models.OneToOneField(Users, on_delete=models.CASCADE,
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,
                                 verbose_name='Пользователь')
 
     def __str__(self):
-        return self.user.username
+        return self.user.nickname
 
     class Meta:
         verbose_name = 'Администратор'

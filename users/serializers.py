@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import Users, CodePhone
+from .models import CustomUser, CodePhone
 
 
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Users
+        model = CustomUser
         fields = '__all__'
 
 
