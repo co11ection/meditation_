@@ -6,5 +6,5 @@ class Meditation(models.Model):
     description = models.TextField(blank=True, null=True,
                                    verbose_name='Описание')
     duration = models.DurationField(verbose_name='Длительность медитации')
-    completed_by_users = models.ManyToManyField('users.Users', blank=True,
+    completed_by_users = models.ManyToManyField('users.CustomUser', blank=True,
                                                 related_name='completed_meditations')

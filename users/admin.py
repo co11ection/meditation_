@@ -1,13 +1,13 @@
 from django.contrib import admin
-from .models import Users
+from .models import CustomUser
 
 
 # Register your models here.
 
 class UsersAdmin(admin.ModelAdmin):
     list_display = (
-        'username', 'login', 'password', 'email', 'role', 'is_active')
-    search_fields = ('username', 'login', 'password', 'email', 'role')
+        'nickname', 'login', 'password', 'email', 'role', 'is_active')
+    search_fields = ('nickname', 'login', 'password', 'email', 'role')
     list_filter = ('role', 'is_active')
     list_per_page = 50
 
@@ -15,4 +15,4 @@ class UsersAdmin(admin.ModelAdmin):
 
 
 admin.site.site_header = 'Administration'
-admin.site.register(Users, UsersAdmin)
+admin.site.register(CustomUser, UsersAdmin)

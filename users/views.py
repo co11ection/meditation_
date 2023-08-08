@@ -4,8 +4,31 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import CustomUser
 from .serializers import UsersSerializer
-from .utils import is_phone_number, is_email, ru_phone
+from .utils import is_phone_number, is_email, ru_phone, send_phone_reset
 from .db_communication import add_user
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def registration_get_code(request):
+    try:
+        values = request.data
+        if not (is_phone_number(values['login'])):
+            return Response("login must be phone number",
+                            status=status.HTTP_400_BAD_REQUEST)
+        phone = values['login']
+        is_registered = False
+        if CustomUser.objects.filter(phone_number__contains=ru_phone(phone)):
+            is_registered = True
+        code, text = send_phone_reset(phone)
+        return Response({
+            "code": code,
+            "text": text,
+            "is_registered": is_registered,
+        })
+    except Exception as err:
+        return Response({"error": f"Что-то пошло не так: {err}"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -47,11 +70,22 @@ def registration(request):
                 'id': user.id,
             })
 
-        token, user = add_user(values, request.GET.get('ref'))
-        return Response({
-            "token": token,
-            "id": user.id,
-        }, status=status.HTTP_201_CREATED)
+        if is_email(login) and 'password' in values:
+            token, user = add_user(values)
+            return Response({
+                "token": token,
+                "id": user.id,
+            }, status=status.HTTP_201_CREATED)
+        elif is_phone_number(login):
+            token, user = add_user(values)
+            return Response({
+                "token": token,
+                "id": user.id,
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "error": "Некорректный запрос для регистрации"},
+                status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as err:
         return Response({"error": f"Что-то пошло не так: {err}"},
