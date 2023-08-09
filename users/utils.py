@@ -1,5 +1,6 @@
 import re
 import jwt
+import hashlib
 import requests
 import json
 import random
@@ -28,6 +29,13 @@ def calculate_token(login: str):
         'login': login,
         'timestamp': str(time())
     }, key=SECRET_KEY)
+
+
+def hash_password(password):
+    if password:
+        return hashlib.sha256(password.encode("utf-8")).hexdigest()
+    else:
+        raise Exception("Password not specified")
 
 
 def send_phone_reset(phone):

@@ -69,7 +69,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.role == 'user'
 
     def __str__(self):
-        return f"{self.login}"
+        return f"{self.nickname}"
 
 
 class CodePhone(models.Model):

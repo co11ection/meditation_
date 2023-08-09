@@ -1,11 +1,13 @@
+from django.contrib.auth.hashers import check_password
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+
 from .models import CustomUser
 from .serializers import UsersSerializer
-from .utils import is_phone_number, is_email, ru_phone, send_phone_reset
-from .db_communication import add_user
+from .db_communication import add_user, get_user
+from users import utils
 
 
 @api_view(['POST'])
@@ -13,21 +15,21 @@ from .db_communication import add_user
 def registration_get_code(request):
     try:
         values = request.data
-        if not (is_phone_number(values['login'])):
+        if not (utils.is_phone_number(values['login'])):
             return Response("login must be phone number",
                             status=status.HTTP_400_BAD_REQUEST)
         phone = values['login']
         is_registered = False
-        if CustomUser.objects.filter(phone_number__contains=ru_phone(phone)):
+        if CustomUser.objects.filter(phone_number__contains=utils.ru_phone(phone)):
             is_registered = True
-        code, text = send_phone_reset(phone)
+        code, text = utils.send_phone_reset(phone)
         return Response({
             "code": code,
             "text": text,
             "is_registered": is_registered,
         })
     except Exception as err:
-        return Response({"error": f"Что-то пошло не так: {err}"},
+        return Response({"error": f"Something went wrong: {err}"},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -50,45 +52,83 @@ def registration(request):
     try:
         values = request.data
         login = values.get('login')
-        if not (is_phone_number(login) or is_email(login)):
+        if not (utils.is_phone_number(login) or utils.is_email(login)):
             return Response({
-                "error": "Логин должен быть электронной почтой или номером телефона"},
+                "error": "Login must be email or phone number"},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        if is_phone_number(login):
-            login = ru_phone(login)
-            user = CustomUser.objects.filter(phone_number=login).first()
+        if utils.is_email(login) and 'password' in values:
+            token, user = add_user(values)
+            return Response({
+                "token": token,
+                "id": user.id,
+            }, status=status.HTTP_201_CREATED)
+        elif utils.is_phone_number(login):
+            token, user = add_user(values)
+            return Response({
+                "token": token,
+                "id": user.id,
+            }, status=status.HTTP_201_CREATED)
         else:
-            user = CustomUser.objects.filter(email=login).first()
+            return Response({
+                "error": "Invalid registration request"},
+                status=status.HTTP_400_BAD_REQUEST)
 
-        if user:
-            user.fcm_token = values.get('fcm_token')
+    except Exception as err:
+        return Response({"error": f"Something went wrong: {err}"},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def auth(request):
+    try:
+        values = request.data
+        login = values.get('login')
+        password = values.get('password')
+        fcm_token = values.get('fcm_token')
+        user = None
+        if not (utils.is_phone_number(login) or utils.is_email(login)):
+            return Response({
+                "error": "Login must be email or phone number"},
+                status=status.HTTP_400_BAD_REQUEST)
+        if utils.is_phone_number(login):
+            login = utils.ru_phone(login)
+            user = get_user(
+                login=login
+            )
+        if utils.is_email(login) and 'password' in values:
+            user = get_user(
+                login=login
+            )
+        if user is None:
+            return Response({
+                'authorized': False,
+                'error': 'User with such login does not exists'
+            })
+        if utils.is_email(login) and check_password(utils.hash_password(password), user.password):
+            user.fcm_token = fcm_token
             user.save()
             return Response({
                 'authorized': True,
                 'token': user.token,
-                'id': user.id,
+                "id": user.id,
             })
-
-        if is_email(login) and 'password' in values:
-            token, user = add_user(values)
+        elif utils.is_phone_number(login):
+            user.fcm_token = fcm_token
+            user.save()
             return Response({
-                "token": token,
+                'authorized': True,
+                'token': user.token,
                 "id": user.id,
-            }, status=status.HTTP_201_CREATED)
-        elif is_phone_number(login):
-            token, user = add_user(values)
-            return Response({
-                "token": token,
-                "id": user.id,
-            }, status=status.HTTP_201_CREATED)
+            })
         else:
             return Response({
-                "error": "Некорректный запрос для регистрации"},
-                status=status.HTTP_400_BAD_REQUEST)
-
+                'authorized': False,
+                'error': 'Wrong credentials'
+            }, status=status.HTTP_400_BAD_REQUEST)
     except Exception as err:
-        return Response({"error": f"Что-то пошло не так: {err}"},
+        return Response({"error": f"Something went wrong: {err}"},
                         status=status.HTTP_400_BAD_REQUEST)
 
 

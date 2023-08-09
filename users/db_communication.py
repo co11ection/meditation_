@@ -1,8 +1,6 @@
-import hashlib
 from loguru import logger
-from users import utils
 from .models import CustomUser
-from .utils import ru_phone
+from users import utils
 
 
 def add_user(values: dict) -> tuple:
@@ -24,13 +22,13 @@ def add_user(values: dict) -> tuple:
     password = None
     if utils.is_phone_number(login):
         phone = login
-        if CustomUser.objects.filter(phone_number__contains=ru_phone(phone)):
+        if CustomUser.objects.filter(phone_number__contains=utils.ru_phone(phone)).exists():
             raise Exception("UNIQUE constraint failed: user.phone_number")
 
     if email:
-        if CustomUser.objects.filter(email__contains=email):
+        if CustomUser.objects.filter(email__contains=email).exists():
             raise Exception("UNIQUE constraint failed: users.email")
-        password = hashlib.sha256(values['password'].encode("utf-8")).hexdigest()
+        password = utils.hash_password(values['password'])
 
     user = CustomUser.objects.create_user(
         login=login,
@@ -44,3 +42,21 @@ def add_user(values: dict) -> tuple:
     logger.debug(f'Created new user with fcm token {values["fcm_token"]}')
 
     return token, user
+
+
+def get_user(**kwargs) -> CustomUser:
+    login = kwargs.get("login")
+    phone_number = utils.ru_phone(login) if utils.is_phone_number(login) else None
+    email = login if utils.is_email(login) else None
+
+    if phone_number:
+        user = CustomUser.objects.filter(phone_number__contains=phone_number).first()
+    elif email:
+        user = CustomUser.objects.filter(email__contains=email).first()
+    else:
+        user = None
+
+    if user:
+        if not user.is_active:
+            raise Exception("Your account has been blocked. Please, contact support")
+    return user
