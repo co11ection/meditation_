@@ -36,6 +36,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=500, blank=True, null=True)
     token = models.CharField(max_length=500, blank=True, null=True, unique=True, verbose_name='Токен авторизации')
     photo = models.ImageField(null=True, blank=True, upload_to="media/", verbose_name='Аватарка')
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True, verbose_name='Статус активности')
     phone_number = models.CharField(max_length=100, blank=True, null=True, verbose_name='Телефон', unique=True)
     email = models.CharField(max_length=100, blank=True, null=True, verbose_name='Почта')
