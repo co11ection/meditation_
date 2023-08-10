@@ -1,4 +1,5 @@
 from django.contrib.auth.hashers import check_password
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -6,7 +7,7 @@ from rest_framework import status
 
 from .models import CustomUser
 from .serializers import UsersSerializer
-from .db_communication import add_user, get_user
+from users import db_communication as db
 from users import utils
 
 
@@ -28,9 +29,9 @@ def registration_get_code(request):
             "text": text,
             "is_registered": is_registered,
         })
-    except Exception as err:
-        return Response({"error": f"Something went wrong: {err}"},
-                        status=status.HTTP_400_BAD_REQUEST)
+    except Exception as ex:
+        return Response({"error": f"Something goes wrong: {ex}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -58,13 +59,13 @@ def registration(request):
                 status=status.HTTP_400_BAD_REQUEST)
 
         if utils.is_email(login) and 'password' in values:
-            token, user = add_user(values)
+            token, user = db.add_user(values)
             return Response({
                 "token": token,
                 "id": user.id,
             }, status=status.HTTP_201_CREATED)
         elif utils.is_phone_number(login):
-            token, user = add_user(values)
+            token, user = db.add_user(values)
             return Response({
                 "token": token,
                 "id": user.id,
@@ -74,9 +75,9 @@ def registration(request):
                 "error": "Invalid registration request"},
                 status=status.HTTP_400_BAD_REQUEST)
 
-    except Exception as err:
-        return Response({"error": f"Something went wrong: {err}"},
-                        status=status.HTTP_400_BAD_REQUEST)
+    except Exception as ex:
+        return Response({"error": f"Something goes wrong: {ex}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -94,11 +95,11 @@ def auth(request):
                 status=status.HTTP_400_BAD_REQUEST)
         if utils.is_phone_number(login):
             login = utils.ru_phone(login)
-            user = get_user(
+            user = db.get_user(
                 login=login
             )
         if utils.is_email(login) and 'password' in values:
-            user = get_user(
+            user = db.get_user(
                 login=login
             )
         if user is None:
@@ -127,9 +128,54 @@ def auth(request):
                 'authorized': False,
                 'error': 'Wrong credentials'
             }, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as err:
-        return Response({"error": f"Something went wrong: {err}"},
-                        status=status.HTTP_400_BAD_REQUEST)
+    except Exception as ex:
+        return Response({"error": f"Something goes wrong: {ex}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password(request):
+    try:
+        values = request.data
+        return Response(db.reset_password1(values))
+    except ObjectDoesNotExist:
+        return Response('Can\'t find user', status=status.HTTP_400_BAD_REQUEST)
+    except ValidationError as ex:
+        return Response({'error': str(ex)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def check_code(request):
+    try:
+        values = request.data
+        return Response(db.check_code(values))
+    except ObjectDoesNotExist:
+        return Response('Can\'t find user', status=status.HTTP_400_BAD_REQUEST)
+    except ValidationError as ex:
+        return Response({'error': str(ex)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password_confirm(request):
+    try:
+        token = request.headers.get('Authorization')
+        values = request.data
+        db.reset_password2(token, values["password"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except ObjectDoesNotExist:
+        return Response('Can\'t find user')
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])

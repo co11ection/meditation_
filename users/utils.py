@@ -5,8 +5,9 @@ import requests
 import json
 import random
 from time import time
+from django.core.mail import send_mail
 
-from omtogether.settings import SECRET_KEY
+from omtogether.settings import SECRET_KEY, EMAIL_HOST_USER, SMS_PASSWORD, SMS_LOGIN
 
 
 def is_email(string: str):
@@ -47,16 +48,29 @@ def send_phone_reset(phone):
                     "phone": phone,
                     "sender": "BiBipTrip",
                     "clientId": "1",
-                    "text": "Ваш код подтверждения приложения BiBipTrip: " + str(code) + ". Не говорите код!"
+                    "text": "Ваш код подтверждения приложения Test: " + str(code) + ". Не говорите код!"
                 }
             ],
             "statusQueueName": "myQueue",
             "showBillingDetails": True,
-            "login": "rkaydarzinn88",
-            "password": "YaGIQ27Kt"
+            "login": SMS_LOGIN,
+            "password": SMS_PASSWORD
         }
     )
     r = requests.post('https://api.iqsms.ru/messages/v2/send.json', data=body)
     # print(r.text)
     # print(phone)
     return code, r.text
+
+
+def send_mail_reset(email):
+    code = random.randint(100000, 999999)
+    if send_mail('Your code',
+                 f'Введите этот код для подтверждения личности на сервисе Test:'
+                 f' {code}',
+                 EMAIL_HOST_USER,
+                 [email],
+                 fail_silently=False, ):
+        return code
+    else:
+        return 0

@@ -9,7 +9,8 @@ class CustomUserManager(BaseUserManager):
 
         extra_fields.setdefault('is_active', True)
         user = self.model(login=login, **extra_fields)
-        user.set_password(password)
+        if password is not None:
+            user.set_password(password)
         user.save(using=self._db)
         return user
 
@@ -35,6 +36,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     nickname = models.CharField(max_length=100, blank=True, null=True, verbose_name='Никнейм')
     password = models.CharField(max_length=500, blank=True, null=True)
     token = models.CharField(max_length=500, blank=True, null=True, unique=True, verbose_name='Токен авторизации')
+    code = models.IntegerField(blank=True, null=True)
     photo = models.ImageField(null=True, blank=True, upload_to="media/", verbose_name='Аватарка')
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
