@@ -1,4 +1,6 @@
 from django.urls import path
+
+from . import views
 from .views import OnboardingTextAPIView, OnboardingTextDetailView, \
     ChatMessageView, ComplaintView
 
@@ -10,4 +12,9 @@ urlpatterns = [
     path('chat-message/', ChatMessageView.as_view(),
          name='chat-message-list-create'),
     path('complaint/', ComplaintView.as_view(), name='complaint-list-create'),
+    path('onboarding/steps/', views.OnboardingStepAPIView.as_view(),
+         name='onboarding-steps'),
+    path('user/onboarding/<int:user_id>/',
+         views.UserOnboardingAPIView.as_view(), name='user-onboarding'),
+
 ]
