@@ -4,9 +4,9 @@ services:
   db:
     image: postgres
     environment:
-      - POSTGRES_DB=omtogether
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=omtogether
     ports:
       - "5432:5432"
     volumes:
@@ -18,5 +18,7 @@ services:
       - .:/app
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     depends_on:
       - db
