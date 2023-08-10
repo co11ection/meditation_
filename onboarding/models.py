@@ -18,6 +18,31 @@ class OnboardingText(models.Model):
         verbose_name_plural = 'Тексты Онбординга'
 
 
+class OnboardingStep(models.Model):
+    title = models.CharField(max_length=255, verbose_name='Название этапа')
+    description = models.TextField(verbose_name='Описание этапа')
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = 'Этап онбординга'
+        verbose_name_plural = 'Этапы онбординга'
+
+
+class UserOnboarding(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
+                             verbose_name='Пользователь')
+    completed_steps = models.ManyToManyField(OnboardingStep,
+                                             verbose_name='Пройденные этапы')
+    skipped = models.BooleanField(default=False,
+                                  verbose_name='Пропущен онбординг')
+
+    class Meta:
+        verbose_name = 'Прохождение онбординга'
+        verbose_name_plural = 'Прохождения онбординга'
+
+
 class ChatMessage(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
                              verbose_name='Пользователь')
@@ -46,27 +71,3 @@ class Complaint(models.Model):
     class Meta:
         verbose_name = 'Жалоба'
         verbose_name_plural = 'Жалобы'
-
-
-class Moderator(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,
-                                verbose_name='Пользователь')
-
-    def __str__(self):
-        return self.user.nickname
-
-    class Meta:
-        verbose_name = 'Модератор'
-        verbose_name_plural = 'Модераторы'
-
-
-class Administrator(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,
-                                verbose_name='Пользователь')
-
-    def __str__(self):
-        return self.user.nickname
-
-    class Meta:
-        verbose_name = 'Администратор'
-        verbose_name_plural = 'Администраторы'

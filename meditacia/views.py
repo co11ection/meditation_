@@ -11,7 +11,6 @@ def meditations_list(request):
         meditations = Meditation.objects.all()
         serializer = MeditationSerializer(meditations, many=True)
         return Response(serializer.data)
-
     elif request.method == 'POST':
         serializer = MeditationSerializer(data=request.data)
         if serializer.is_valid():
