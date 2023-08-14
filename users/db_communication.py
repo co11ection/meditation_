@@ -18,6 +18,7 @@ def add_user(values: dict) -> tuple:
 
     token = utils.calculate_token(values['login'])  # Используем вашу функцию для генерации токена
     login = values['login']
+    nickname = values['nickname']
     email = login if utils.is_email(login) else None
     phone = None
     password = None
@@ -27,14 +28,17 @@ def add_user(values: dict) -> tuple:
             raise Exception("UNIQUE constraint failed: user.phone_number")
 
     if email:
-        if CustomUser.objects.filter(email__contains=email).exists():
+        if CustomUser.objects.filter(email__icontains=email).exists():
             raise Exception("UNIQUE constraint failed: users.email")
         password = utils.hash_password(values['password'])
+
+    if CustomUser.objects.filter(nickname=nickname).exists():
+        raise Exception("UNIQUE constraint failed: users.nickname")
 
     user = CustomUser.objects.create_user(
         login=login,
         token=token,
-        nickname=values['nickname'],
+        nickname=nickname,
         password=password,
         email=email,
         phone_number=phone,

@@ -58,8 +58,6 @@ def send_phone_reset(phone):
         }
     )
     r = requests.post('https://api.iqsms.ru/messages/v2/send.json', data=body)
-    # print(r.text)
-    # print(phone)
     return code, r.text
 
 
