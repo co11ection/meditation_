@@ -178,44 +178,44 @@ def reset_password_confirm(request):
         return Response({'error': f'Something goes wrong: {ex}'},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-@api_view(['POST'])
-def calculate_tokens(request):
-    """
-    Рассчитать и обновить баланс пользователя на основе коэффициентов медитации и бонусов.
-
-    Параметры:
-    - user_id (int): ID пользователя.
-    - base_value (float): Базовое значение токенов.
-    - booster (float): Коэффициент ускорения.
-    - degradation (float): Коэффициент деградации.
-    - k (float): Плавающий коэффициент.
-
-    Возвращает:
-    - Ответ с обновленными данными пользователя (баланс, ID и т.д.).
-
-    Если пользователь не существует, возвращает ошибку "не найдено".
-    """
-    try:
-        user_id = request.data.get('user_id')
-        base_value = request.data.get('base_value', 0)
-        booster = request.data.get('booster', 0)
-        degradation = request.data.get('degradation', 0)
-        k = request.data.get('k', 0)
-
-        # Получаем пользователя по ID
-        user = CustomUser.objects.get(pk=user_id)
-
-        # Рассчитываем количество токенов
-        n = base_value + booster + degradation
-        result = n + n * k
-
-        # Обновляем баланс пользователя
-        user.balance += result
-        user.save()
-
-        serializer = UsersSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+#
+# @api_view(['POST'])
+# def calculate_tokens(request):
+#     """
+#     Рассчитать и обновить баланс пользователя на основе коэффициентов медитации и бонусов.
+#
+#     Параметры:
+#     - user_id (int): ID пользователя.
+#     - base_value (float): Базовое значение токенов.
+#     - booster (float): Коэффициент ускорения.
+#     - degradation (float): Коэффициент деградации.
+#     - k (float): Плавающий коэффициент.
+#
+#     Возвращает:
+#     - Ответ с обновленными данными пользователя (баланс, ID и т.д.).
+#
+#     Если пользователь не существует, возвращает ошибку "не найдено".
+#     """
+#     try:
+#         user_id = request.data.get('user_id')
+#         base_value = request.data.get('base_value', 0)
+#         booster = request.data.get('booster', 0)
+#         degradation = request.data.get('degradation', 0)
+#         k = request.data.get('k', 0)
+#
+#         # Получаем пользователя по ID
+#         user = CustomUser.objects.get(pk=user_id)
+#
+#         # Рассчитываем количество токенов
+#         n = base_value + booster + degradation
+#         result = n + n * k
+#
+#         # Обновляем баланс пользователя
+#         user.balance += result
+#         user.save()
+#
+#         serializer = UsersSerializer(user)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except CustomUser.DoesNotExist:
         return Response({"error": "Пользователь не найден."},

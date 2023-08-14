@@ -1,5 +1,8 @@
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, \
+    BaseUserManager
 from django.db import models
+
+from wallet.models import WalletTokens
 
 
 class CustomUserManager(BaseUserManager):
@@ -33,19 +36,28 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('moderator', 'Модератор'),
     )
     login = models.CharField(max_length=100, unique=True, verbose_name='Логин')
-    nickname = models.CharField(max_length=100, blank=True, null=True, unique=True, verbose_name='Никнейм')
+    nickname = models.CharField(max_length=100, blank=True, null=True,
+                                unique=True, verbose_name='Никнейм')
     password = models.CharField(max_length=500, blank=True, null=True)
-    token = models.CharField(max_length=500, blank=True, null=True, unique=True, verbose_name='Токен авторизации')
+    token = models.CharField(max_length=500, blank=True, null=True,
+                             unique=True, verbose_name='Токен авторизации')
     code = models.IntegerField(blank=True, null=True)
-    photo = models.ImageField(null=True, blank=True, upload_to="media/", verbose_name='Аватарка')
+    photo = models.ImageField(null=True, blank=True, upload_to="media/",
+                              verbose_name='Аватарка')
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True, verbose_name='Статус активности')
-    phone_number = models.CharField(max_length=100, blank=True, null=True, verbose_name='Телефон', unique=True)
-    email = models.CharField(max_length=100, blank=True, null=True, verbose_name='Почта')
+    is_active = models.BooleanField(default=True,
+                                    verbose_name='Статус активности')
+    phone_number = models.CharField(max_length=100, blank=True, null=True,
+                                    verbose_name='Телефон', unique=True)
+    email = models.CharField(max_length=100, blank=True, null=True,
+                             verbose_name='Почта')
     fcm_token = models.CharField(max_length=500, null=True, blank=True)
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    role = models.CharField(default='user', choices=ROLE_CHOICES, max_length=12)
+    balance = models.OneToOneField(WalletTokens, on_delete=models.CASCADE)
+    consecutive_meditation_days = models.IntegerField(default=0,
+                                                      verbose_name='Дни непрерывной медитации')
+    role = models.CharField(default='user', choices=ROLE_CHOICES,
+                            max_length=12)
 
     objects = CustomUserManager()
 
@@ -77,5 +89,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 class CodePhone(models.Model):
     login = models.CharField(max_length=100, blank=True, null=True)
     code = models.IntegerField(blank=True, null=True)
-    is_confirmed = models.BooleanField(max_length=100, blank=True, null=True, default=False)
+    is_confirmed = models.BooleanField(max_length=100, blank=True, null=True,
+                                       default=False)
     time = models.DateTimeField(auto_now=True)
