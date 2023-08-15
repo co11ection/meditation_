@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes, \
+    authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -23,7 +24,8 @@ def registration_get_code(request):
                             status=status.HTTP_400_BAD_REQUEST)
         phone = values['login']
         is_registered = False
-        if CustomUser.objects.filter(phone_number__contains=utils.ru_phone(phone)):
+        if CustomUser.objects.filter(
+                phone_number__contains=utils.ru_phone(phone)):
             is_registered = True
         code, text = utils.send_phone_reset(phone)
         return Response({
@@ -109,7 +111,8 @@ def auth(request):
                 'authorized': False,
                 'error': 'User with such login does not exists'
             })
-        if utils.is_email(login) and check_password(utils.hash_password(password), user.password):
+        if utils.is_email(login) and check_password(
+                utils.hash_password(password), user.password):
             user.fcm_token = fcm_token
             user.save()
             return Response({
@@ -179,44 +182,6 @@ def reset_password_confirm(request):
         return Response({'error': f'Something goes wrong: {ex}'},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-#
-# @api_view(['POST'])
-# def calculate_tokens(request):
-#     """
-#     Рассчитать и обновить баланс пользователя на основе коэффициентов медитации и бонусов.
-#
-#     Параметры:
-#     - user_id (int): ID пользователя.
-#     - base_value (float): Базовое значение токенов.
-#     - booster (float): Коэффициент ускорения.
-#     - degradation (float): Коэффициент деградации.
-#     - k (float): Плавающий коэффициент.
-#
-#     Возвращает:
-#     - Ответ с обновленными данными пользователя (баланс, ID и т.д.).
-#
-#     Если пользователь не существует, возвращает ошибку "не найдено".
-#     """
-#     try:
-#         user_id = request.data.get('user_id')
-#         base_value = request.data.get('base_value', 0)
-#         booster = request.data.get('booster', 0)
-#         degradation = request.data.get('degradation', 0)
-#         k = request.data.get('k', 0)
-#
-#         # Получаем пользователя по ID
-#         user = CustomUser.objects.get(pk=user_id)
-#
-#         # Рассчитываем количество токенов
-#         n = base_value + booster + degradation
-#         result = n + n * k
-#
-#         # Обновляем баланс пользователя
-#         user.balance += result
-#         user.save()
-#
-#         serializer = UsersSerializer(user)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except CustomUser.DoesNotExist:
         return Response({"error": "Пользователь не найден."},
