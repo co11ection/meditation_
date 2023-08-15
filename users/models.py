@@ -53,7 +53,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.CharField(max_length=100, blank=True, null=True,
                              verbose_name='Почта')
     fcm_token = models.CharField(max_length=500, null=True, blank=True)
-    # balance = models.OneToOneField('wallet.WalletTokens', on_delete=models.CASCADE)
     consecutive_meditation_days = models.IntegerField(default=0,
                                                       verbose_name='Дни непрерывной медитации')
     role = models.CharField(default='user', choices=ROLE_CHOICES,

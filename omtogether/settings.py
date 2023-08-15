@@ -69,18 +69,20 @@ WSGI_APPLICATION = 'omtogether.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'omtogether',
-        'USER': 'postgres',
-        'PASSWORD': '12345',
-        'HOST': 'localhost',
-        # Здесь используйте имя сервиса из docker-compose.yml
-        'PORT': '5432',
-    }
+    'default': env.db()
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'omtogether',
+#         'USER': 'postgres',
+#         'PASSWORD': '12345',
+#         'HOST': 'db',
+#         # Здесь используйте имя сервиса из docker-compose.yml
+#         'PORT': '5432',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
