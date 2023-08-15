@@ -1,5 +1,8 @@
+import base64
+from django.core.files.base import ContentFile
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from loguru import logger
+from rest_framework.authtoken.models import Token
 from .models import CustomUser, CodePhone
 from users import utils
 
@@ -15,8 +18,6 @@ def add_user(values: dict) -> tuple:
     - token (str): Сгенерированный токен для нового пользователя.
     - user (Users): Вновь созданный экземпляр пользователя.
     """
-
-    token = utils.calculate_token(values['login'])  # Используем вашу функцию для генерации токена
     login = values['login']
     nickname = values['nickname']
     email = login if utils.is_email(login) else None
@@ -37,7 +38,6 @@ def add_user(values: dict) -> tuple:
 
     user = CustomUser.objects.create_user(
         login=login,
-        token=token,
         nickname=nickname,
         password=password,
         email=email,
@@ -45,6 +45,9 @@ def add_user(values: dict) -> tuple:
         fcm_token=values['fcm_token']
     )
     logger.debug(f'Created new user with fcm token {values["fcm_token"]}')
+
+    token_obj, created = Token.objects.get_or_create(user=user)
+    token = token_obj.key
 
     return token, user
 
@@ -121,4 +124,15 @@ def reset_password2(token, password):
     if not user:
         raise ObjectDoesNotExist
     user.password = utils.hash_password(password)
+    user.save()
+
+
+def change_photo(user, photo: str):
+    if photo:
+        format, imgstr = photo.split(';base64,')
+        ext = format.split('/')[-1]
+        data = ContentFile(base64.b64decode(imgstr), name=f'{user.username}_ava.{ext}')
+        user.photo = data
+    else:
+        user.photo = None
     user.save()

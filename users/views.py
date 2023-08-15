@@ -3,6 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -227,7 +228,7 @@ def calculate_tokens(request):
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([TokenAuthentication])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def user_profile(request):
     """
     Получить, обновить или удалить профиль пользователя.
@@ -263,23 +264,48 @@ def user_profile(request):
     Удаляет пользователя с ID=1.
     """
     try:
-        token = request.headers.get('Authorization')
-        user = db.get_user(token=token)
-    except CustomUser.DoesNotExist:
-        return Response({"error": "Пользователь не найден."},
-                        status=status.HTTP_404_NOT_FOUND)
+        user = request.user
 
-    if request.method == 'GET':
-        serializer = UsersSerializer(user, fields=('id', 'username', 'email'))
-        return Response(serializer.data)
+        if user is None:
+            return Response({"error": "Can\'t find user"},
+                            status=status.HTTP_404_NOT_FOUND)
 
-    elif request.method == 'PUT':
-        serializer = UsersSerializer(user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if request.method == 'GET':
+            serializer = UsersSerializer(user)
+            token_obj = Token.objects.get(user=user)
+            token = token_obj.key
+            serializer_data = serializer.data
+            serializer_data["token"] = token
 
-    elif request.method == 'DELETE':
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(serializer_data)
+
+        elif request.method == 'PUT':
+            serializer = UsersSerializer(user, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        elif request.method == 'DELETE':
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def change_photo(request):
+    try:
+        user = request.user
+        values = request.data
+        db.change_photo(user, values.get("photo"))
+
+        serializer = UsersSerializer(user)
+        return Response(serializer.data, status.HTTP_200_OK)
+
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
