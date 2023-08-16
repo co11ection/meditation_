@@ -17,6 +17,19 @@ from users import utils
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def registration_get_code(request):
+    """
+       Получение смс кода для регистрации пользователя или аутентификации пользователя.
+
+       Параметры:
+       - login (str): Логин пользователя (номер телефона).
+
+
+       Возвращает:
+       - Статус отправки смс сообщения и сам код.
+
+
+       Если логин не является номером телефона, возвращает ошибку неверного запроса.
+    """
     try:
         values = request.data
         if not (utils.is_phone_number(values['login'])):
@@ -115,17 +128,21 @@ def auth(request):
                 utils.hash_password(password), user.password):
             user.fcm_token = fcm_token
             user.save()
+            token_obj = Token.objects.get(user=user)
+            token = token_obj.key
             return Response({
                 'authorized': True,
-                'token': user.token,
+                'token': token,
                 "id": user.id,
             })
         elif utils.is_phone_number(login):
             user.fcm_token = fcm_token
             user.save()
+            token_obj = Token.objects.get(user=user)
+            token = token_obj.key
             return Response({
                 'authorized': True,
-                'token': user.token,
+                'token': token,
                 "id": user.id,
             })
         else:
@@ -172,12 +189,16 @@ def check_code(request):
 @permission_classes([AllowAny])
 def reset_password_confirm(request):
     try:
-        token = request.headers.get('Authorization')
+        token_key = request.headers.get('Authorization').split(' ')[1]
+        token = Token.objects.get(key=token_key)
+
         values = request.data
-        db.reset_password2(token, values["password"])
+        db.reset_password2(token.user, values["password"])
         return Response(status=status.HTTP_204_NO_CONTENT)
+    except Token.DoesNotExist:
+        return Response('Invalid token', status=status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
-        return Response('Can\'t find user')
+        return Response('Can\'t find user', status=status.HTTP_404_NOT_FOUND)
     except Exception as ex:
         return Response({'error': f'Something goes wrong: {ex}'},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
