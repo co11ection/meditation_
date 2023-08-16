@@ -123,7 +123,7 @@ def auth(request):
             return Response({
                 'authorized': False,
                 'error': 'User with such login does not exists'
-            })
+            }, status=status.HTTP_400_BAD_REQUEST)
         if utils.is_email(login) and check_password(
                 utils.hash_password(password), user.password):
             user.fcm_token = fcm_token
