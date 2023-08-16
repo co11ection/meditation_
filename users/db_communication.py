@@ -130,7 +130,7 @@ def change_photo(user, photo: str):
     if photo:
         format, imgstr = photo.split(';base64,')
         ext = format.split('/')[-1]
-        data = ContentFile(base64.b64decode(imgstr), name=f'{user.username}_ava.{ext}')
+        data = ContentFile(base64.b64decode(imgstr), name=f'{user.nickname}_ava.{ext}')
         user.photo = data
     else:
         user.photo = None
