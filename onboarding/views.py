@@ -3,20 +3,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from .models import ChatMessage, OnboardingText, Complaint
-from .models import OnboardingStep
-from .models import UserOnboarding
-from .serializers import ChatMessageSerializer, OnboardingTextSerializer, \
-    ComplaintSerializer
-from .serializers import OnboardingStepSerializer
+from .models import OnboardingStep, UserOnboarding
+from .serializers import ChatMessageSerializer, OnboardingTextSerializer
+from .serializers import ComplaintSerializer, OnboardingStepSerializer
 from .serializers import UserOnboardingSerializer
 
 
 class OnboardingTextAPIView(APIView):
     """
-    Представление для просмотра и создания текстов онбординга.
+    API представление для просмотра и создания текстов онбординга.
     """
+    permission_classes = [AllowAny]  # Только администраторы могут изменять
+    # permission_classes = [IsAdminUser]  # Только администраторы могут изменять
 
     def get(self, request):
         """
@@ -39,48 +39,40 @@ class OnboardingTextAPIView(APIView):
 
 class OnboardingTextDetailView(APIView):
     """
-    Представление для просмотра, обновления и удаления одного текста онбординга.
+    API представление для просмотра, обновления и удаления одного текста онбординга.
     """
+    permission_classes = [AllowAny]
+    # permission_classes = [IsAdminUser]
 
     def get_object(self, pk):
-        """
-        Получить объект OnboardingText по его primary key (pk).
-        """
         try:
             return OnboardingText.objects.get(pk=pk)
         except OnboardingText.DoesNotExist:
             raise Http404
 
     def get(self, request, pk):
-        """
-        Получить один объект OnboardingText и сериализовать его.
-        """
         onboarding_text = self.get_object(pk)
         serializer = OnboardingTextSerializer(onboarding_text)
         return Response(serializer.data)
 
     def put(self, request, pk):
-        """
-        Обновить объект OnboardingText на основе данных запроса.
-        """
         onboarding_text = self.get_object(pk)
-        serializer = OnboardingTextSerializer(onboarding_text,
-                                              data=request.data)
+        serializer = OnboardingTextSerializer(onboarding_text, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        """
-        Удалить объект OnboardingText.
-        """
         onboarding_text = self.get_object(pk)
         onboarding_text.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class OnboardingStepAPIView(APIView):
+    """
+    API представление для просмотра этапов онбординга.
+    """
     def get(self, request):
         queryset = OnboardingStep.objects.all()
         serializer = OnboardingStepSerializer(queryset, many=True)
@@ -88,6 +80,12 @@ class OnboardingStepAPIView(APIView):
 
 
 class UserOnboardingAPIView(APIView):
+    """
+    API представление для онбординга пользователя.
+    """
+    permission_classes = [AllowAny]
+    # permission_classes = [IsAuthenticated]
+
     def get(self, request, user_id):
         user_onboarding, created = UserOnboarding.objects.get_or_create(
             user_id=user_id)
@@ -114,17 +112,19 @@ class UserOnboardingAPIView(APIView):
 
 class ChatMessageView(generics.ListCreateAPIView):
     """
-    Представление для просмотра и создания сообщений чата регистрации.
+    API представление для просмотра и создания сообщений чата регистрации.
     """
     queryset = ChatMessage.objects.all()
     serializer_class = ChatMessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    # permission_classes = [IsAuthenticated]
 
 
 class ComplaintView(generics.ListCreateAPIView):
     """
-    Представление для просмотра и создания жалоб.
+    API представление для просмотра и создания жалоб.
     """
     queryset = Complaint.objects.all()
     serializer_class = ComplaintSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    # permission_classes = [IsAuthenticated]
