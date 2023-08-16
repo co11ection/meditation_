@@ -69,7 +69,7 @@ def get_user(**kwargs) -> CustomUser:
             **kwargs
         ).first()
     if user:
-        if 'token' in kwargs and not user.is_active:
+        if not user.is_active:
             raise Exception("Your account has been blocked. Please, contact support")
     return user
 
@@ -109,9 +109,11 @@ def check_code(values):
     if user.code == code:
         user.code = 0
         user.save()
+        token_obj = Token.objects.get(user=user)
+        token = token_obj.key
         return {
             "is_correct": True,
-            "token": user.token
+            "token": token
         }
     else:
         return {
@@ -119,10 +121,7 @@ def check_code(values):
         }
 
 
-def reset_password2(token, password):
-    user = get_user(token=token)
-    if not user:
-        raise ObjectDoesNotExist
+def reset_password2(user, password):
     user.password = utils.hash_password(password)
     user.save()
 
@@ -131,7 +130,7 @@ def change_photo(user, photo: str):
     if photo:
         format, imgstr = photo.split(';base64,')
         ext = format.split('/')[-1]
-        data = ContentFile(base64.b64decode(imgstr), name=f'{user.username}_ava.{ext}')
+        data = ContentFile(base64.b64decode(imgstr), name=f'{user.nickname}_ava.{ext}')
         user.photo = data
     else:
         user.photo = None

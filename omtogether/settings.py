@@ -1,9 +1,6 @@
 import os
 import environ
 from pathlib import Path
-from dotenv import load_dotenv
-
-load_dotenv()
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "omtogether.settings")
 
@@ -31,6 +28,7 @@ INSTALLED_APPS = [
     'wallet.apps.WalletConfig',
 
     'rest_framework',
+    'rest_framework.authtoken',
     'drf_yasg',
 
 ]
