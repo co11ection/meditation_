@@ -183,14 +183,6 @@ def reset_password_confirm(request):
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-    except CustomUser.DoesNotExist:
-        return Response({"error": "Пользователь не найден."},
-                        status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({"error": f"Что-то пошло не так: {e}"},
-                        status=status.HTTP_400_BAD_REQUEST)
-
-
 @api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
