@@ -1,130 +1,41 @@
-from django.http import Http404
-from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-from .models import ChatMessage, OnboardingText, Complaint
-from .models import OnboardingStep, UserOnboarding
-from .serializers import ChatMessageSerializer, OnboardingTextSerializer
-from .serializers import ComplaintSerializer, OnboardingStepSerializer
-from .serializers import UserOnboardingSerializer
+from .models import OnboardingText
+from .serializers import OnboardingTextSerializer
 
 
-class OnboardingTextAPIView(APIView):
-    """
-    API представление для просмотра и создания текстов онбординга.
-    """
-    permission_classes = [AllowAny]  # Только администраторы могут изменять
-    # permission_classes = [IsAdminUser]  # Только администраторы могут изменять
+class OnboardingTextView(APIView):
+    permission_classes = [AllowAny]
 
     def get(self, request):
         """
-        Получить все объекты OnboardingText и сериализовать их.
+        Получение текста для обучения в порядке отображения.
+
+        Parameters:
+            last_ordered_text_id (int): Идентификатор последнего выведенного текста.
+                                       Если None, вернется первый текст в порядке.
+
+        Returns:
+            serialized_text (dict): Сериализованный объект текста для обучения.
+
+        Example:
+            /api/onboarding/text/?last_ordered_text_id=1
         """
-        queryset = OnboardingText.objects.all()
-        serializer = OnboardingTextSerializer(queryset, many=True)
-        return Response(serializer.data)
+        last_ordered_text_id = request.query_params.get('last_ordered_text_id',
+                                                        None)
 
-    def post(self, request):
-        """
-        Создать новый объект OnboardingText на основе данных запроса.
-        """
-        serializer = OnboardingTextSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if last_ordered_text_id is None:
+            text = OnboardingText.objects.order_by('order').first()
+        else:
+            try:
+                current_text = OnboardingText.objects.get(
+                    pk=last_ordered_text_id)
+                text = OnboardingText.objects.filter(
+                    order__gt=current_text.order).order_by('order').first()
+            except OnboardingText.DoesNotExist:
+                text = None
 
-
-class OnboardingTextDetailView(APIView):
-    """
-    API представление для просмотра, обновления и удаления одного текста онбординга.
-    """
-    permission_classes = [AllowAny]
-    # permission_classes = [IsAdminUser]
-
-    def get_object(self, pk):
-        try:
-            return OnboardingText.objects.get(pk=pk)
-        except OnboardingText.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk):
-        onboarding_text = self.get_object(pk)
-        serializer = OnboardingTextSerializer(onboarding_text)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        onboarding_text = self.get_object(pk)
-        serializer = OnboardingTextSerializer(onboarding_text, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        onboarding_text = self.get_object(pk)
-        onboarding_text.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class OnboardingStepAPIView(APIView):
-    """
-    API представление для просмотра этапов онбординга.
-    """
-    def get(self, request):
-        queryset = OnboardingStep.objects.all()
-        serializer = OnboardingStepSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-class UserOnboardingAPIView(APIView):
-    """
-    API представление для онбординга пользователя.
-    """
-    permission_classes = [AllowAny]
-    # permission_classes = [IsAuthenticated]
-
-    def get(self, request, user_id):
-        user_onboarding, created = UserOnboarding.objects.get_or_create(
-            user_id=user_id)
-        serializer = UserOnboardingSerializer(user_onboarding)
-        return Response(serializer.data)
-
-    def post(self, request, user_id):
-        user_onboarding, created = UserOnboarding.objects.get_or_create(
-            user_id=user_id)
-        completed_step_ids = request.data.get('completed_steps', [])
-        user_onboarding.completed_steps.set(completed_step_ids)
-        user_onboarding.save()
-        serializer = UserOnboardingSerializer(user_onboarding)
-        return Response(serializer.data)
-
-    def put(self, request, user_id):
-        user_onboarding, created = UserOnboarding.objects.get_or_create(
-            user_id=user_id)
-        user_onboarding.skipped = True
-        user_onboarding.save()
-        serializer = UserOnboardingSerializer(user_onboarding)
-        return Response(serializer.data)
-
-
-class ChatMessageView(generics.ListCreateAPIView):
-    """
-    API представление для просмотра и создания сообщений чата регистрации.
-    """
-    queryset = ChatMessage.objects.all()
-    serializer_class = ChatMessageSerializer
-    permission_classes = [AllowAny]
-    # permission_classes = [IsAuthenticated]
-
-
-class ComplaintView(generics.ListCreateAPIView):
-    """
-    API представление для просмотра и создания жалоб.
-    """
-    queryset = Complaint.objects.all()
-    serializer_class = ComplaintSerializer
-    permission_classes = [AllowAny]
-    # permission_classes = [IsAuthenticated]
+        serializer = OnboardingTextSerializer(text)
+        return Response(serializer.data, status=status.HTTP_200_OK)

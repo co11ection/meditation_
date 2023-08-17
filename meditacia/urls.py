@@ -1,8 +1,11 @@
 from django.urls import path
-from . import views
+from .views import MeditationsListView, StartMeditationView
 
 app_name = 'meditacia'
 
 urlpatterns = [
-    path('', views.meditations_list, name='meditations_list'),
+    path('', MeditationsListView.as_view(),
+         name='meditations_list'),
+    path('start-meditation/<int:meditation_id>/',
+         StartMeditationView.as_view(), name='start_meditation'),
 ]

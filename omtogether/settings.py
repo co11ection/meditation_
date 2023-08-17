@@ -145,3 +145,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Используйте свои параметры подключения к брокеру
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'  # Используйте свои параметры
