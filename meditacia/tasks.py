@@ -1,6 +1,7 @@
 from celery import shared_task
 from .models import Meditation
 
+
 @shared_task
 def end_meditation(meditation_id):
     meditation = Meditation.objects.get(id=meditation_id)

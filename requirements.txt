@@ -1,6 +1,5 @@
 amqp==5.1.1
 asgiref==3.7.2
-backports.zoneinfo==0.2.1
 billiard==4.1.0
 celery==5.3.1
 certifi==2023.7.22
@@ -25,8 +24,10 @@ loguru==0.7.0
 packaging==23.1
 Pillow==10.0.0
 prompt-toolkit==3.0.39
-psycopg2==2.9.6
-psycopg2-binary==2.9.3
+# Для Windows
+psycopg2==2.9.6 ; platform_system == "Windows"
+# Для Linux
+psycopg2-binary==2.9.3 ; platform_system != "Windows"
 pycparser==2.21
 PyJWT==2.8.0
 python-dateutil==2.8.2
