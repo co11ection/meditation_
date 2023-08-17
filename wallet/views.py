@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from users.models import CustomUser
+from .models import WalletTokens
 from .serializers import WalletSerializer
 from rest_framework.permissions import AllowAny
 
@@ -12,17 +13,21 @@ from rest_framework.permissions import AllowAny
 class WalletTokensView(APIView):
     permission_classes = [AllowAny]
 
-    @api_view(['GET'])
     def get(self, request):
         """
         Получение баланса накопленных токенов пользователя.
         """
-        user = request.user  # Предполагается, что пользователь авторизован
+        user = request.user
         balance = self.calculate_balance(user)
-        serializer = WalletSerializer(balance)
-        return Response(serializer.data)
 
-    @api_view(['POST'])
+        # Вместо возвращения объекта WalletTokens возвращаем словарь
+        response_data = {
+            "balance": balance.balance,  # Получаем баланс из объекта WalletTokens
+            "user": user.id  # Добавьте дополнительные данные, если необходимо
+        }
+
+        return Response(response_data, status.HTTP_200_OK)
+
     def post(self, request):
         """
         Покупка и отправка токенов другому пользователю.
@@ -49,16 +54,19 @@ class WalletTokensView(APIView):
         """
         Расчет баланса накопленных токенов пользователя.
         """
-        base_value = 10  # Значение токенов без коэффициентов
-        b = self.calculate_booster(user)  # Ускоритель
-        d = self.calculate_degradation(user)  # Понижающий коэффициент
-        k = self.calculate_coefficient(user)  # Коэффициент
+        base_value = 10
+        b = self.calculate_booster(user)
+        d = self.calculate_degradation(user)
+        k = self.calculate_coefficient(user)
         n = base_value + b + d
 
-        # Расчет начисления токенов за медитации
         result = n + n * k
 
-        return result
+        wallet_tokens, _ = WalletTokens.objects.get_or_create(user=user)
+        wallet_tokens.balance = result
+        wallet_tokens.save()
+
+        return wallet_tokens
 
     def calculate_booster(self, user):
         """
