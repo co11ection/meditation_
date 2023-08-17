@@ -77,6 +77,20 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def is_moderator(self):
         return self.role == 'moderator'
 
+    def send_tokens_to_user(self, recipient, amount):
+        sender_wallet, _ = WalletTokens.objects.get_or_create(user=self)
+        recipient_wallet, _ = WalletTokens.objects.get_or_create(user=recipient)
+
+        if sender_wallet.balance >= amount:
+            sender_wallet.balance -= amount
+            recipient_wallet.balance += amount
+
+            sender_wallet.save()
+            recipient_wallet.save()
+            return True
+        else:
+            return False
+
     @property
     def is_user(self):
         return self.role == 'user'

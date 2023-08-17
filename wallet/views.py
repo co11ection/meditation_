@@ -20,10 +20,9 @@ class WalletTokensView(APIView):
         user = request.user
         balance = self.calculate_balance(user)
 
-        # Вместо возвращения объекта WalletTokens возвращаем словарь
         response_data = {
-            "balance": balance.balance,  # Получаем баланс из объекта WalletTokens
-            "user": user.id  # Добавьте дополнительные данные, если необходимо
+            "balance": balance.balance,
+            "user": user.id
         }
 
         return Response(response_data, status.HTTP_200_OK)
