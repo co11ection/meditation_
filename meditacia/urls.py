@@ -1,11 +1,23 @@
+from rest_framework.routers import DefaultRouter
 from django.urls import path
-from .views import MeditationsListView, StartMeditationView
+
+from .views import MeditationsListView, StartMeditationView, EndMeditationView, \
+    PauseMeditationView
 
 app_name = 'meditacia'
 
+router = DefaultRouter()
+router.register('', MeditationsListView)
+
 urlpatterns = [
-    path('', MeditationsListView.as_view(),
-         name='meditations_list'),
+    *router.urls,
     path('start-meditation/<int:meditation_id>/',
-         StartMeditationView.as_view(), name='start_meditation'),
+         StartMeditationView.as_view(), name='start-meditation'),
+
+    path('pause-meditation/<int:meditation_id>/',
+         PauseMeditationView.as_view(), name='pause-meditation'),
+
+    path('end-meditation/<int:meditation_id>/', EndMeditationView.as_view(),
+         name='end-meditation'),
+
 ]

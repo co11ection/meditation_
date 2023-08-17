@@ -1,8 +1,14 @@
 from rest_framework import serializers
-from .models import OnboardingText
+from .models import OnboardingTextStartMeditation, OnboardingTextStartApp
 
 
-class OnboardingTextSerializer(serializers.ModelSerializer):
+class OnboardingTextStartSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OnboardingText
+        model = OnboardingTextStartMeditation
+        fields = ('id', 'content', 'order')
+
+
+class OnboardingTextPreMeditationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OnboardingTextStartApp
         fields = ('id', 'content', 'order')

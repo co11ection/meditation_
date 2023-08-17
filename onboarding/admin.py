@@ -1,9 +1,21 @@
 from django.contrib import admin
-from .models import OnboardingText
+from .models import OnboardingTextStartApp, OnboardingTextStartMeditation
 
 
-@admin.register(OnboardingText)
-class OnboardingTextAdmin(admin.ModelAdmin):
+class OnboardingTextStartAppAdmin(admin.ModelAdmin):
     list_display = ('content', 'order')
-    list_display_links = ('content',)
     list_editable = ('order',)
+    search_fields = ('content',)
+    list_per_page = 20
+
+
+class OnboardingTextStartMeditationAdmin(admin.ModelAdmin):
+    list_display = ('content', 'order')
+    list_editable = ('order',)
+    search_fields = ('content',)
+    list_per_page = 20
+
+
+admin.site.register(OnboardingTextStartApp, OnboardingTextStartAppAdmin)
+admin.site.register(OnboardingTextStartMeditation,
+                    OnboardingTextStartMeditationAdmin)
