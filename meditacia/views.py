@@ -38,7 +38,6 @@ class StartMeditationView(APIView):
         meditation_duration = meditation.duration
         end_time = meditation.scheduled_datetime + meditation_duration
 
-        # Schedule the end_meditation Celery task
         end_meditation.apply_async((meditation.id,), eta=end_time)
 
         return Response(status=status.HTTP_200_OK)
@@ -52,8 +51,7 @@ class EndMeditationView(APIView):
         Прерывает или завершает сеанс медитации и показывает результаты.
         """
         meditation = get_object_or_404(Meditation, id=meditation_id)
-        # Рассчитать заработанные токены на основе продолжительности сеанса, пользователя и т. д.
-        # Показать результаты с заработанными токенами
+
         return Response({"earned_tokens": earned_tokens},
                         status=status.HTTP_200_OK)
 
