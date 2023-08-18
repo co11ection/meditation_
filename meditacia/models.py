@@ -6,11 +6,11 @@ from users.models import CustomUser
 
 class UserProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    practice_time = models.PositiveIntegerField(default=0)
-    daily_practice = models.BooleanField(default=False)
-    continuous_practice = models.BooleanField(default=False)
-    progress_accelerator = models.BooleanField(default=False)
-    engaged_followers = models.PositiveIntegerField(default=0)
+    practice_time = models.PositiveIntegerField(blank=True, null=True, default=0)
+    daily_practice = models.BooleanField(blank=True, null=True ,default=False)
+    continuous_practice = models.IntegerField(blank=True, null=True, default=0)
+    progress_accelerator = models.BooleanField(blank=True, null=True, default=False)
+    engaged_followers = models.PositiveIntegerField(blank=True, null=True, default=0)
 
     class Meta:
         verbose_name = 'Профиль Пользователя'

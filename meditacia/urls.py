@@ -10,7 +10,7 @@ router = DefaultRouter()
 router.register('', MeditationsListView)
 
 urlpatterns = [
-    *router.urls,
+    # *router.urls,
     path('start-meditation/<int:meditation_id>/',
          StartMeditationView.as_view(), name='start-meditation'),
     path('profile/', UserProfileUpdateView.as_view(),

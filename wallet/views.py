@@ -18,10 +18,10 @@ class WalletTokensView(APIView):
         Получение баланса накопленных токенов пользователя.
         """
         user = request.user
-        balance = self.calculate_balance(user)
+        balance = self.get_balance(user)
 
         response_data = {
-            "balance": balance.balance,
+            "balance": balance,
             "user": user.id
         }
 
@@ -48,6 +48,13 @@ class WalletTokensView(APIView):
             return Response(
                 {'error': 'Недостаточно токенов на балансе отправителя'},
                 status=status.HTTP_400_BAD_REQUEST)
+
+    def get_balance(self, user):
+        """
+            Получение баланса пользователя из базы данных.
+            """
+        wallet_tokens = WalletTokens.objects.get(user=user)
+        return wallet_tokens.balance
 
     def calculate_balance(self, user):
         """
@@ -87,4 +94,3 @@ class WalletTokensView(APIView):
         """
         coefficient = 0.5
         return coefficient
-
