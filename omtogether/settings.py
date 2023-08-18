@@ -2,6 +2,8 @@ import os
 import environ
 from pathlib import Path
 
+from django.template.context_processors import media
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "omtogether.settings")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -125,9 +127,14 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
+
+MEDIA_URL = ''
+
+MEDIA_ROOT = ((BASE_DIR / 'media/'),)
+
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
+STATIC_ROOT = ((BASE_DIR / 'static/'),)
 
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
