@@ -4,6 +4,22 @@ from django.utils import timezone
 from users.models import CustomUser
 
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    practice_time = models.PositiveIntegerField(default=0)
+    daily_practice = models.BooleanField(default=False)
+    continuous_practice = models.BooleanField(default=False)
+    progress_accelerator = models.BooleanField(default=False)
+    engaged_followers = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Профиль Пользователя'
+        verbose_name_plural = 'Профиль Пользователя'
+
+    def __str__(self):
+        return str(self.user)
+
+
 class Meditation(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название медитации')
     description = models.TextField(blank=True, null=True,
