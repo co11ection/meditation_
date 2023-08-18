@@ -18,59 +18,59 @@ class MeditationsListView(ReadOnlyModelViewSet):
     serializer_class = MeditationSerializer
 
 
-# class StartMeditationView(APIView):
-#     def post(self, request, meditation_id):
-#         """
-#         Начинает сеанс медитации для пользователя.
-#         """
-#         meditation = get_object_or_404(Meditation, id=meditation_id)
-#         meditation.scheduled_datetime = timezone.now()
-#         meditation.save()
-#
-#         meditation_duration = meditation.duration
-#         end_time = meditation.scheduled_datetime + meditation_duration
-#
-#         end_meditation.apply_async((meditation.id,), eta=end_time)
-#
-#         end_meditation_url = reverse('meditacia:end-meditation',
-#                                      args=[meditation.id])
-#
-#         return Response({'message': 'Начало медитации',
-#                          'end_meditation_url': end_meditation_url},
-#                         status=status.HTTP_200_OK)
-
 class StartMeditationView(APIView):
     def post(self, request, meditation_id):
         """
         Начинает сеанс медитации для пользователя.
         """
-        if request.user.is_authenticated:
-            meditation = get_object_or_404(Meditation, id=meditation_id)
-            session = MeditationSession.objects.create(
-                user=request.user,
-                meditation=meditation,
-                start_time=timezone.now(),
-                status="active",
-            )
+        meditation = get_object_or_404(Meditation, id=meditation_id)
+        meditation.scheduled_datetime = timezone.now()
+        meditation.save()
 
-            meditation_duration = meditation.duration
-            end_time = session.start_time + meditation_duration
+        meditation_duration = meditation.duration
+        end_time = meditation.scheduled_datetime + meditation_duration
 
-            end_meditation.apply_async((session.id,), eta=end_time)
+        end_meditation.apply_async((meditation.id,), eta=end_time)
 
-            end_meditation_url = reverse('meditacia:end-meditation',
-                                         args=[session.id])
+        end_meditation_url = reverse('meditacia:end-meditation',
+                                     args=[meditation.id])
 
-            return Response({'message': 'Начало медитации',
-                             'end_meditation_url': end_meditation_url},
-                            status=status.HTTP_200_OK)
-        else:
-            return Response({'message': 'Требуется аутентификация'},
-                            status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'Начало медитации',
+                         'end_meditation_url': end_meditation_url},
+                        status=status.HTTP_200_OK)
+
+# class StartMeditationView(APIView):
+#     def post(self, request, meditation_id):
+#         """
+#         Начинает сеанс медитации для пользователя.
+#         """
+#         if request.user.is_authenticated:
+#             meditation = get_object_or_404(Meditation, id=meditation_id)
+#             session = MeditationSession.objects.create(
+#                 user=request.user,
+#                 meditation=meditation,
+#                 start_time=timezone.now(),
+#                 status="active",
+#             )
+#
+#             meditation_duration = meditation.duration
+#             end_time = session.start_time + meditation_duration
+#
+#             end_meditation.apply_async((session.id,), eta=end_time)
+#
+#             end_meditation_url = reverse('meditacia:end-meditation',
+#                                          args=[session.id])
+#
+#             return Response({'message': 'Начало медитации',
+#                              'end_meditation_url': end_meditation_url},
+#                             status=status.HTTP_200_OK)
+#         else:
+#             return Response({'message': 'Требуется аутентификация'},
+#                             status=status.HTTP_401_UNAUTHORIZED)
 
 
 class EndMeditationView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request, meditation_id):
         """

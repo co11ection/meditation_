@@ -1,8 +1,8 @@
+# urls.py
 from django.urls import path
-from .views import OnboardStartAppView, OnboardStartMeditationView
+from .views import OnboardTextByTypeView
 
 urlpatterns = [
-    path('text-startapp/', OnboardStartAppView.as_view(), name='startapp'),
-    path('text-startmeditation/', OnboardStartMeditationView.as_view(),
-         name='startmeditation'),
+    path('<slug:onboarding_type_slug>', OnboardTextByTypeView.as_view(),
+         name='onboarding-by-type'),
 ]

@@ -1,14 +1,16 @@
 from rest_framework import serializers
-from .models import OnboardingTextStartMeditation, OnboardingTextStartApp
+from .models import OnboardText, OnboardType
 
 
-class OnboardingTextStartSerializer(serializers.ModelSerializer):
+class OnboardingTextSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(source='type.name', read_only=True)
+
     class Meta:
-        model = OnboardingTextStartMeditation
-        fields = ('id', 'content', 'order')
+        model = OnboardText
+        fields = '__all__'
 
 
-class OnboardingTextPreMeditationSerializer(serializers.ModelSerializer):
+class OnboardTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OnboardingTextStartApp
-        fields = ('id', 'content', 'order')
+        models = OnboardType
+        fields = 'type'
