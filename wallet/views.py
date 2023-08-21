@@ -87,9 +87,13 @@ class WalletTokensView(APIView):
         user = request.user
         balance = utils.get_balance(user)
         booster = self.calculate_booster(request)
-        wallet_reatio_instance = WalletRatio.objects.first()
+        degradation = self.calculate_degradation()
+        wallet_ratio_instance = WalletRatio.objects.first()
+        group_size = int(request.data.get('group_size', 0))
+        group_ratio = utils.calculate_group_meditation_tokens(group_size)
 
-        earn_finish = wallet_reatio_instance.base_value * booster
+        earn_finish = ((wallet_ratio_instance.base_value + booster + degradation) +
+                       (wallet_ratio_instance.base_value + booster + degradation) * group_ratio)
         individual_tokens = int(earn_finish)
 
         with transaction.atomic():
