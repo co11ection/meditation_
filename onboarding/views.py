@@ -26,11 +26,14 @@
 #     serializer_class = OnboardingTextPreMeditationSerializer
 
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import AllowAny
+
 from .models import OnboardText
 from .serializers import OnboardingTextSerializer
 
 
 class OnboardTextByTypeView(ListAPIView):
+    permission_classes = [AllowAny]
     serializer_class = OnboardingTextSerializer
 
     def get_queryset(self):

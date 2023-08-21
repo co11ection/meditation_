@@ -1,17 +1,13 @@
-from .models import Meditation
 from django.contrib import admin
-from .models import UserProfile
+from .models import Meditation, UserProfile
 
 
 # Register your models here.
-
+@admin.register(Meditation)
 class MeditationAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'description', 'duration']
     list_filter = ['completed_by_users']
     search_fields = ['name', 'description']
-
-
-admin.site.register(Meditation, MeditationAdmin)
 
 
 @admin.register(UserProfile)

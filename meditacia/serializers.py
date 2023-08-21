@@ -1,6 +1,5 @@
-from .models import Meditation
 from rest_framework import serializers
-from .models import UserProfile
+from .models import Meditation, UserProfile
 
 
 class MeditationSerializer(serializers.ModelSerializer):

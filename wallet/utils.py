@@ -39,5 +39,3 @@ def get_balance(user):
         return wallet_tokens.balance
     except:
         return None
-
-
