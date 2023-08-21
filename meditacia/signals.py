@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 
 from users.models import CustomUser
-from .models import Meditation, MeditationSession
+from .models import Meditation, MeditationSession, UserProfile
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -19,3 +19,9 @@ def create_meditation_on_start(sender, instance, created, **kwargs):
         )
 
 
+@receiver(post_save, sender=CustomUser)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(
+            user=instance,
+        )
