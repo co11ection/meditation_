@@ -19,9 +19,10 @@ from .serializers import MeditationSerializer
 
 
 class UserProfileMediation(APIView):
-    def get(self):
-        profile = UserProfile.objects.get(id=1)
-        return Response({"message": profile})
+    def get(self, request):
+        profile = UserProfile.objects.get(id=request.user.id)
+        serializer = UserProfileSerializer(profile)
+        return Response(serializer.data)
 
 
 class MeditationsListView(ReadOnlyModelViewSet):
@@ -59,7 +60,8 @@ class EndMeditationView(APIView):
         Прерывает или завершает сеанс медитации и показывает результаты.
         """
         meditation = get_object_or_404(Meditation, id=meditation_id)
-
-        balance = WalletTokensView.calculate_individual_tokens_to_earn(request)
+        wallet_tokens_view = WalletTokensView()
+        balance = wallet_tokens_view.calculate_individual_tokens_to_earn(
+            request)
         return Response({"earned_tokens": balance},
                         status=status.HTTP_200_OK)

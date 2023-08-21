@@ -8,8 +8,10 @@ from rest_framework.views import APIView
 from users.models import CustomUser
 from rest_framework.permissions import AllowAny
 
+from .models import WalletRatio
 from .models import WalletTokens
-from .utils import calculate_group_meditation_tokens, get_balance
+# from .utils import calculate_group_meditation_tokens, get_balance
+from . import utils
 
 
 class WalletTokensView(APIView):
@@ -20,7 +22,7 @@ class WalletTokensView(APIView):
         Получение баланса накопленных токенов пользователя.
         """
         user = request.user
-        balance = get_balance(user)
+        balance = utils.get_balance(user)
 
         response_data = {
             "balance": balance,
@@ -83,10 +85,11 @@ class WalletTokensView(APIView):
 
     def calculate_individual_tokens_to_earn(self, request):
         user = request.user
-        balance = self.get(request)
-        print(balance[0])
+        balance = utils.get_balance(user)
         booster = self.calculate_booster(request)
-        earn_finish = balance * booster
+        wallet_reatio_instance = WalletRatio.objects.first()
+
+        earn_finish = wallet_reatio_instance.base_value * booster
         individual_tokens = int(earn_finish)
 
         with transaction.atomic():
@@ -100,7 +103,7 @@ class WalletTokensView(APIView):
             'total_balance': updated_balance if balance is not None else individual_tokens,
         }
 
-        return Response(response_data)
+        return response_data
 
     def update_balance(self, user, new_balance):
         try:
@@ -118,5 +121,5 @@ class GroupMediationTokensView(APIView):
     @staticmethod
     def post(self, request):
         group_size = int(request.data.get('group_size', 0))
-        earned_tokens = calculate_group_meditation_tokens(group_size)
+        earned_tokens = utils.calculate_group_meditation_tokens(group_size)
         return Response({'earned_tokens': earned_tokens})

@@ -21,7 +21,7 @@ class WalletTokens(models.Model):
 
 class WalletRatio(models.Model):
     base_value = models.PositiveIntegerField(default=1)
-    invite_user_bonus = models.IntegerField(default=1,
+    invite_user_bonus = models.PositiveIntegerField(default=1,
                                             verbose_name='Количество токенов за пользователя')
 
     class Meta:

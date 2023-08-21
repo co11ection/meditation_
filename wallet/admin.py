@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from .models import WalletRatio
 from .models import WalletTokens
 
 
@@ -16,3 +18,12 @@ class WalletTokensAdmin(admin.ModelAdmin):
     ordering = ('-date_add_tokens',)
     verbose_name = 'Баланс токенов'
     verbose_name_plural = 'Баланс токенов пользователей'
+
+
+class WalletRatioAdmin(admin.ModelAdmin):
+    list_display = (
+        'base_value', 'invite_user_bonus')
+    list_editable = ('invite_user_bonus',)
+
+
+admin.site.register(WalletRatio, WalletRatioAdmin)
