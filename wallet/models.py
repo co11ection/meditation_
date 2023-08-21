@@ -17,3 +17,13 @@ class WalletTokens(models.Model):
         db_table = 'wallet_tokens'
         verbose_name = 'Баланс токенов пользователя'
         verbose_name_plural = 'Баланс токенов пользователей'
+
+
+class WalletRatio(models.Model):
+    base_value = models.PositiveIntegerField(default=1)
+    invite_user_bonus = models.IntegerField(default=1,
+                                            verbose_name='Количество токенов за пользователя')
+
+    class Meta:
+        verbose_name = 'Коэффициент пользователей'
+        verbose_name_plural = 'Коэффициенты пользователей'

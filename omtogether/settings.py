@@ -154,5 +154,5 @@ REST_FRAMEWORK = {
 }
 
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Используйте свои параметры подключения к брокеру
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'  # Используйте свои параметры
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'

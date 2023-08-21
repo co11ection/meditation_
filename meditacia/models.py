@@ -5,12 +5,41 @@ from users.models import CustomUser
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    practice_time = models.PositiveIntegerField(blank=True, null=True, default=0)
-    daily_practice = models.BooleanField(blank=True, null=True ,default=False)
-    continuous_practice = models.IntegerField(blank=True, null=True, default=0)
-    progress_accelerator = models.BooleanField(blank=True, null=True, default=False)
-    engaged_followers = models.PositiveIntegerField(blank=True, null=True, default=0)
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь'
+    )
+    practice_time = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        default=0,
+        verbose_name='Время практики'
+    )
+    daily_practice = models.BooleanField(
+        blank=True,
+        null=True,
+        default=False,
+        verbose_name='Ежедневная практика'
+    )
+    continuous_practice = models.IntegerField(
+        blank=True,
+        null=True,
+        default=0,
+        verbose_name='Непрерывная практика'
+    )
+    progress_accelerator = models.BooleanField(
+        blank=True,
+        null=True,
+        default=False,
+        verbose_name='Ускоритель прогресса'
+    )
+    engaged_followers = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        default=0,
+        verbose_name='Приглашенные подписчики'
+    )
 
     class Meta:
         verbose_name = 'Профиль Пользователя'

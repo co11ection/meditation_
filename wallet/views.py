@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -5,9 +6,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from users.models import CustomUser
-from .models import WalletTokens
-from .serializers import WalletSerializer
 from rest_framework.permissions import AllowAny
+
+from .models import WalletTokens
+from .utils import calculate_group_meditation_tokens, get_balance
 
 
 class WalletTokensView(APIView):
@@ -18,7 +20,7 @@ class WalletTokensView(APIView):
         Получение баланса накопленных токенов пользователя.
         """
         user = request.user
-        balance = self.get_balance(user)
+        balance = get_balance(user)
 
         response_data = {
             "balance": balance,
@@ -49,48 +51,72 @@ class WalletTokensView(APIView):
                 {'error': 'Недостаточно токенов на балансе отправителя'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-    def get_balance(self, user):
-        """
-            Получение баланса пользователя из базы данных.
-            """
-        wallet_tokens = WalletTokens.objects.get(user=user)
-        return wallet_tokens.balance
-
-    def calculate_balance(self, user):
-        """
-        Расчет баланса накопленных токенов пользователя.
-        """
-        base_value = 10
-        b = self.calculate_booster(user)
-        d = self.calculate_degradation(user)
-        k = self.calculate_coefficient(user)
-        n = base_value + b + d
-
-        result = n + n * k
-
-        wallet_tokens, _ = WalletTokens.objects.get_or_create(user=user)
-        wallet_tokens.balance = result
-        wallet_tokens.save()
-
-        return wallet_tokens
-
-    def calculate_booster(self, user):
+    @staticmethod
+    def calculate_booster(request):
         """
         Расчет ускорителя на основе непрерывной практики пользователя.
         """
-        booster = 0.2
-        return booster
+        if request.user.consecutive_meditation_days > 21:
+            return 1.2
+        elif request.user.consecutive_meditation_days > 40:
+            return 1.5
+        elif request.user.consecutive_meditation_days > 90:
+            return 2
+        else:
+            return 1
 
-    def calculate_degradation(self, user):
+    @staticmethod
+    def calculate_degradation():
         """
         Расчет понижающего коэффициента для пользователя.
         """
         degradation = 0.05
         return degradation
 
-    def calculate_coefficient(self, user):
+    @staticmethod
+    def calculate_coefficient():
         """
         Расчет коэффициента на основе различных факторов.
         """
         coefficient = 0.5
         return coefficient
+
+    def calculate_individual_tokens_to_earn(self, request):
+        user = request.user
+        balance = self.get(request)
+        print(balance[0])
+        booster = self.calculate_booster(request)
+        earn_finish = balance * booster
+        individual_tokens = int(earn_finish)
+
+        with transaction.atomic():
+            if balance is not None:
+                updated_balance = balance + individual_tokens
+                self.update_balance(user, updated_balance)
+            else:
+                self.create_balance(user, individual_tokens)
+        response_data = {
+            'tokens_earned': individual_tokens,
+            'total_balance': updated_balance if balance is not None else individual_tokens,
+        }
+
+        return Response(response_data)
+
+    def update_balance(self, user, new_balance):
+        try:
+            wallet_tokens = WalletTokens.objects.get(user=user)
+            wallet_tokens.balance = new_balance
+            wallet_tokens.save()
+        except WalletTokens.DoesNotExist:
+            self.create_balance(user, new_balance)
+
+    def create_balance(self, user, balance):
+        WalletTokens.objects.create(user=user, balance=balance)
+
+
+class GroupMediationTokensView(APIView):
+    @staticmethod
+    def post(self, request):
+        group_size = int(request.data.get('group_size', 0))
+        earned_tokens = calculate_group_meditation_tokens(group_size)
+        return Response({'earned_tokens': earned_tokens})
