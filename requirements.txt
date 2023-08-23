@@ -11,6 +11,7 @@ click-plugins==1.1.1
 click-repl==0.3.0
 colorama==0.4.6
 cryptography==41.0.3
+Deprecated==1.2.14
 Django==3.2.20
 django-environ==0.10.0
 djangorestframework==3.14.0
@@ -24,11 +25,9 @@ loguru==0.7.0
 packaging==23.1
 Pillow==10.0.0
 prompt-toolkit==3.0.39
-# Для Windows
-psycopg2==2.9.7 ; platform_system == "Windows"
-# Для Linux
-psycopg2-binary==2.9.3 ; platform_system != "Windows"
+psycopg2==2.9.7
 pycparser==2.21
+pydantic==1.10.12
 PyJWT==2.8.0
 python-dateutil==2.8.2
 python-dotenv==1.0.0
@@ -42,5 +41,8 @@ tzdata==2023.3
 uritemplate==4.1.1
 urllib3==2.0.4
 vine==5.0.0
+vonage==3.9.0
+vonage-jwt==1.0.0
 wcwidth==0.2.6
 win32-setctime==1.1.0
+wrapt==1.15.0

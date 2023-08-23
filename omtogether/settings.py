@@ -111,6 +111,8 @@ EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
 
 SMS_LOGIN = env.str("SMS_LOGIN")
 SMS_PASSWORD = env.str("SMS_PASSWORD")
+SMS_KEY = env.str("SMS_KEY")
+SMS_SECRET_KEY = env.str("SMS_SECRET_KEY")
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

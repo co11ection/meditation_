@@ -20,6 +20,7 @@ def add_user(values: dict) -> tuple:
     """
     login = values['login']
     nickname = values['nickname']
+    photo = values.get('photo')
     email = login if utils.is_email(login) else None
     phone = None
     password = None
@@ -45,6 +46,9 @@ def add_user(values: dict) -> tuple:
         fcm_token=values['fcm_token']
     )
     logger.debug(f'Created new user with fcm token {values["fcm_token"]}')
+
+    if photo:
+        change_photo(user, photo)
 
     token_obj, created = Token.objects.get_or_create(user=user)
     token = token_obj.key

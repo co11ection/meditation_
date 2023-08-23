@@ -3,11 +3,12 @@ import jwt
 import hashlib
 import requests
 import json
+import vonage
 import random
 from time import time
 from django.core.mail import send_mail
 
-from omtogether.settings import SECRET_KEY, EMAIL_HOST_USER, SMS_PASSWORD, SMS_LOGIN
+from omtogether.settings import SECRET_KEY, EMAIL_HOST_USER, SMS_PASSWORD, SMS_LOGIN, SMS_KEY, SMS_SECRET_KEY
 
 
 def is_email(string: str):
@@ -59,6 +60,24 @@ def send_phone_reset(phone):
     )
     r = requests.post('https://api.iqsms.ru/messages/v2/send.json', data=body)
     return code, r.text
+
+
+def send_phone_code(phone):
+    code = random.randint(100000, 999999)
+    client = vonage.Client(key="c8437bab", secret="Ba5u1ftxvSetEREZ")
+    # sms = vonage.Sms(client)
+    response_data = client.sms.send_message(
+        {
+            "from": "Vonage APIs",
+            "to": "79213700738",
+            "text": "Ваш код подтверждения приложения Test: " + str(code) + ". Не говорите код!",
+        }
+    )
+
+    if response_data["messages"][0]["status"] == "0":
+        return code, response_data
+    else:
+        return 0, response_data['messages'][0]['error-text']
 
 
 def send_mail_reset(email):

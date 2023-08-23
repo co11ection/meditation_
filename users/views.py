@@ -7,6 +7,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
+import vonage
 
 from .models import CustomUser
 from .serializers import UsersSerializer
@@ -40,7 +41,9 @@ def registration_get_code(request):
         if CustomUser.objects.filter(
                 phone_number__contains=utils.ru_phone(phone)):
             is_registered = True
-        code, text = utils.send_phone_reset(phone)
+        code, text = utils.send_phone_code(phone)
+        # code = 12345
+        # text = "test"
         return Response({
             "code": code,
             "text": text,
