@@ -36,8 +36,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('moderator', 'Модератор'),
     )
     login = models.CharField(max_length=100, unique=True, verbose_name='Логин')
-    nickname = models.CharField(max_length=100, blank=True, null=True,
-                                unique=True, verbose_name='Никнейм')
+    nickname = models.CharField(max_length=100, blank=True, null=True, verbose_name='Никнейм')
     password = models.CharField(max_length=500, blank=True, null=True)
     token = models.CharField(max_length=500, blank=True, null=True,
                              unique=True, verbose_name='Токен авторизации')

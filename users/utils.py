@@ -1,11 +1,9 @@
 import re
-import jwt
 import hashlib
 import requests
 import json
 import vonage
 import random
-from time import time
 from django.core.mail import send_mail
 
 from omtogether.settings import SECRET_KEY, EMAIL_HOST_USER, SMS_PASSWORD, SMS_LOGIN, SMS_KEY, SMS_SECRET_KEY
@@ -26,11 +24,11 @@ def is_phone_number(string: str):
     return re.fullmatch(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}', string)
 
 
-def calculate_token(login: str):
-    return jwt.encode({
-        'login': login,
-        'timestamp': str(time())
-    }, key=SECRET_KEY)
+# def calculate_token(login: str):
+#     return jwt.encode({
+#         'login': login,
+#         'timestamp': str(time())
+#     }, key=SECRET_KEY)
 
 
 def hash_password(password):
@@ -47,7 +45,7 @@ def send_phone_reset(phone):
             "messages": [
                 {
                     "phone": phone,
-                    "sender": "BiBipTrip",
+                    "sender": "MediaGramma",
                     "clientId": "1",
                     "text": "Ваш код подтверждения приложения Test: " + str(code) + ". Не говорите код!"
                 }
@@ -65,11 +63,10 @@ def send_phone_reset(phone):
 def send_phone_code(phone):
     code = random.randint(100000, 999999)
     client = vonage.Client(key="c8437bab", secret="Ba5u1ftxvSetEREZ")
-    # sms = vonage.Sms(client)
     response_data = client.sms.send_message(
         {
             "from": "Vonage APIs",
-            "to": "79213700738",
+            "to": "79005320888",
             "text": "Ваш код подтверждения приложения Test: " + str(code) + ". Не говорите код!",
         }
     )
@@ -81,13 +78,14 @@ def send_phone_code(phone):
 
 
 def send_mail_reset(email):
-    code = random.randint(100000, 999999)
-    if send_mail('Your code',
-                 f'Введите этот код для подтверждения личности на сервисе Test:'
-                 f' {code}',
-                 EMAIL_HOST_USER,
-                 [email],
-                 fail_silently=False, ):
+    code = random.SystemRandom().randint(100000, 999999)
+    try:
+        send_mail('Your code',
+                  f'Введите этот код для подтверждения личности на сервисе Test:'
+                  f' {code}',
+                  EMAIL_HOST_USER,
+                  [email],
+                  fail_silently=False,)
         return code
-    else:
-        return 0
+    except Exception as ex:
+        return ex
