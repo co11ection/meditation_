@@ -21,9 +21,9 @@ def add_user(values: dict) -> tuple:
     login = values['login']
     nickname = values['nickname']
     photo = values.get('photo')
+    password = values.get('password')
     email = login if utils.is_email(login) else None
     phone = None
-    password = None
     if utils.is_phone_number(login):
         phone = login
         if CustomUser.objects.filter(phone_number__contains=utils.ru_phone(phone)).exists():
@@ -32,10 +32,8 @@ def add_user(values: dict) -> tuple:
     if email:
         if CustomUser.objects.filter(email__icontains=email).exists():
             raise Exception("UNIQUE constraint failed: users.email")
-        password = utils.hash_password(values['password'])
-
-    if CustomUser.objects.filter(nickname=nickname).exists():
-        raise Exception("UNIQUE constraint failed: users.nickname")
+        if not password:
+            raise ValueError("Password must be provided")
 
     user = CustomUser.objects.create_user(
         login=login,
@@ -67,7 +65,7 @@ def get_user(**kwargs) -> CustomUser:
     if phone_number:
         user = CustomUser.objects.filter(phone_number__contains=phone_number).first()
     elif email:
-        user = CustomUser.objects.filter(email__contains=email).first()
+        user = CustomUser.objects.filter(email__icontains=email).first()
     else:
         user = CustomUser.objects.filter(
             **kwargs
@@ -126,8 +124,11 @@ def check_code(values):
 
 
 def reset_password2(user, password):
-    user.password = utils.hash_password(password)
-    user.save()
+    try:
+        user.set_password(password)
+        user.save()
+    except Exception as ex:
+        return ex
 
 
 def change_photo(user, photo: str):

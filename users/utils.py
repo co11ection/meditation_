@@ -1,12 +1,11 @@
 import re
-import hashlib
 import requests
 import json
-import vonage
+# import vonage
 import random
 from django.core.mail import send_mail
 
-from omtogether.settings import SECRET_KEY, EMAIL_HOST_USER, SMS_PASSWORD, SMS_LOGIN, SMS_KEY, SMS_SECRET_KEY
+from omtogether.settings import EMAIL_HOST_USER, SMS_PASSWORD, SMS_LOGIN, SMS_KEY, SMS_SECRET_KEY
 
 
 def is_email(string: str):
@@ -31,13 +30,6 @@ def is_phone_number(string: str):
 #     }, key=SECRET_KEY)
 
 
-def hash_password(password):
-    if password:
-        return hashlib.sha256(password.encode("utf-8")).hexdigest()
-    else:
-        raise Exception("Password not specified")
-
-
 def send_phone_reset(phone):
     code = random.randint(100000, 999999)
     body = json.dumps(
@@ -60,21 +52,21 @@ def send_phone_reset(phone):
     return code, r.text
 
 
-def send_phone_code(phone):
-    code = random.randint(100000, 999999)
-    client = vonage.Client(key="c8437bab", secret="Ba5u1ftxvSetEREZ")
-    response_data = client.sms.send_message(
-        {
-            "from": "Vonage APIs",
-            "to": "79005320888",
-            "text": "Ваш код подтверждения приложения Test: " + str(code) + ". Не говорите код!",
-        }
-    )
-
-    if response_data["messages"][0]["status"] == "0":
-        return code, response_data
-    else:
-        return 0, response_data['messages'][0]['error-text']
+# def send_phone_code(phone):
+#     code = random.randint(100000, 999999)
+#     client = vonage.Client(key="c8437bab", secret="Ba5u1ftxvSetEREZ")
+#     response_data = client.sms.send_message(
+#         {
+#             "from": "Vonage APIs",
+#             "to": "79005320888",
+#             "text": "Ваш код подтверждения приложения Test: " + str(code) + ". Не говорите код!",
+#         }
+#     )
+#
+#     if response_data["messages"][0]["status"] == "0":
+#         return code, response_data
+#     else:
+#         return 0, response_data['messages'][0]['error-text']
 
 
 def send_mail_reset(email):

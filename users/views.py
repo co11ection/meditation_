@@ -7,7 +7,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
-import vonage
+# import vonage
 
 from .models import CustomUser
 from .serializers import UsersSerializer
@@ -41,7 +41,7 @@ def registration_get_code(request):
         if CustomUser.objects.filter(
                 phone_number__contains=utils.ru_phone(phone)):
             is_registered = True
-        code, text = utils.send_phone_code(phone)
+        code, text = utils.send_phone_reset(phone)
         # code = 12345
         # text = "test"
         return Response({
@@ -127,8 +127,7 @@ def auth(request):
                 'authorized': False,
                 'error': 'User with such login does not exists'
             }, status=status.HTTP_400_BAD_REQUEST)
-        if utils.is_email(login) and check_password(
-                utils.hash_password(password), user.password):
+        if utils.is_email(login) and check_password(password, user.password):
             user.fcm_token = fcm_token
             user.save()
             token_obj = Token.objects.get(user=user)
