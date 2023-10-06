@@ -1,10 +1,57 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from django.contrib.auth.hashers import check_password
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from rest_framework.decorators import api_view, permission_classes, \
+    authentication_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Users
+# import vonage
+
+from .models import CustomUser
 from .serializers import UsersSerializer
-from .utils import is_phone_number, is_email, ru_phone, calculate_token
+from users import db_communication as db
+from users import utils
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def registration_get_code(request):
+    """
+       Получение смс кода для регистрации пользователя или аутентификации пользователя.
+
+       Параметры:
+       - login (str): Логин пользователя (номер телефона).
+
+
+       Возвращает:
+       - Статус отправки смс сообщения и сам код.
+
+
+       Если логин не является номером телефона, возвращает ошибку неверного запроса.
+    """
+    try:
+        values = request.data
+        if not (utils.is_phone_number(values['login'])):
+            return Response("login must be phone number",
+                            status=status.HTTP_400_BAD_REQUEST)
+        phone = values['login']
+        is_registered = False
+        if CustomUser.objects.filter(
+                phone_number__contains=utils.ru_phone(phone)):
+            is_registered = True
+        code, text = utils.send_phone_reset(phone)
+        # code = 12345
+        # text = "test"
+        return Response({
+            "code": code,
+            "text": text,
+            "is_registered": is_registered,
+        })
+    except Exception as ex:
+        return Response({"error": f"Something goes wrong: {ex}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -26,96 +73,219 @@ def registration(request):
     try:
         values = request.data
         login = values.get('login')
-        if not (is_phone_number(login) or is_email(login)):
-            return Response({"error": "Логин должен быть электронной почтой или номером телефона"},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        if is_phone_number(login):
-            login = ru_phone(login)
-            user = Users.objects.filter(phone_number=login).first()
-        else:
-            user = Users.objects.filter(email=login).first()
-
-        if user:
-            user.fcm_token = values.get('fcm_token')
-            user.save()
+        if not (utils.is_phone_number(login) or utils.is_email(login)):
             return Response({
-                'authorized': True,
-                'token': user.token,
-                'id': user.id,
-            })
+                "error": "Login must be email or phone number"},
+                status=status.HTTP_400_BAD_REQUEST)
 
-        token, user = add_user(values, request.GET.get('ref'))
-        return Response({
-            "token": token,
-            "id": user.id,
-        }, status=status.HTTP_201_CREATED)
+        if utils.is_email(login) and 'password' in values:
+            token, user = db.add_user(values)
+            return Response({
+                "token": token,
+                "id": user.id,
+            }, status=status.HTTP_201_CREATED)
+        elif utils.is_phone_number(login):
+            token, user = db.add_user(values)
+            return Response({
+                "token": token,
+                "id": user.id,
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "error": "Invalid registration request"},
+                status=status.HTTP_400_BAD_REQUEST)
 
-    except Exception as err:
-        return Response({"error": f"Что-то пошло не так: {err}"},
-                        status=status.HTTP_400_BAD_REQUEST)
-
-
-def add_user(values, ref):
-    """
-    Добавление нового пользователя в базу данных.
-
-    Параметры:
-    - values (dict): Данные пользователя (имя пользователя, логин, пароль и т.д.).
-    - ref (str): Код реферала (необязательно).
-
-    Возвращает:
-    - token (str): Сгенерированный токен для нового пользователя.
-    - user (Users): Вновь созданный экземпляр пользователя.
-    """
-    # Ваша логика функции add_user здесь
-    # Рассчитайте токен с помощью функции calculate_token
-    # Создайте экземпляр пользователя и сохраните его
-    # Верните токен и экземпляр пользователя
-    pass
+    except Exception as ex:
+        return Response({"error": f"Something goes wrong: {ex}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
-def calculate_tokens(request):
+@permission_classes([AllowAny])
+def auth(request):
+    try:
+        values = request.data
+        login = values.get('login')
+        password = values.get('password')
+        fcm_token = values.get('fcm_token')
+        user = None
+        if not (utils.is_phone_number(login) or utils.is_email(login)):
+            return Response({
+                "error": "Login must be email or phone number"},
+                status=status.HTTP_400_BAD_REQUEST)
+        if utils.is_phone_number(login):
+            login = utils.ru_phone(login)
+            user = db.get_user(
+                login=login
+            )
+        if utils.is_email(login) and 'password' in values:
+            user = db.get_user(
+                login=login
+            )
+        if user is None:
+            return Response({
+                'authorized': False,
+                'error': 'User with such login does not exists'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        if utils.is_email(login) and check_password(password, user.password):
+            user.fcm_token = fcm_token
+            user.save()
+            token_obj = Token.objects.get(user=user)
+            token = token_obj.key
+            return Response({
+                'authorized': True,
+                'token': token,
+                "id": user.id,
+            })
+        elif utils.is_phone_number(login):
+            user.fcm_token = fcm_token
+            user.save()
+            token_obj = Token.objects.get(user=user)
+            token = token_obj.key
+            return Response({
+                'authorized': True,
+                'token': token,
+                "id": user.id,
+            })
+        else:
+            return Response({
+                'authorized': False,
+                'error': 'Wrong credentials'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as ex:
+        return Response({"error": f"Something goes wrong: {ex}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password(request):
+    try:
+        values = request.data
+        return Response(db.reset_password1(values))
+    except ObjectDoesNotExist:
+        return Response('Can\'t find user', status=status.HTTP_400_BAD_REQUEST)
+    except ValidationError as ex:
+        return Response({'error': str(ex)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def check_code(request):
+    try:
+        values = request.data
+        return Response(db.check_code(values))
+    except ObjectDoesNotExist:
+        return Response('Can\'t find user', status=status.HTTP_400_BAD_REQUEST)
+    except ValidationError as ex:
+        return Response({'error': str(ex)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password_confirm(request):
+    try:
+        token_key = request.headers.get('Authorization').split(' ')[1]
+        token = Token.objects.get(key=token_key)
+
+        values = request.data
+        db.reset_password2(token.user, values["password"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except Token.DoesNotExist:
+        return Response('Invalid token', status=status.HTTP_400_BAD_REQUEST)
+    except ObjectDoesNotExist:
+        return Response('Can\'t find user', status=status.HTTP_404_NOT_FOUND)
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
     """
-    Рассчитать и обновить баланс пользователя на основе коэффициентов медитации и бонусов.
+    Получить, обновить или удалить профиль пользователя.
 
     Параметры:
-    - user_id (int): ID пользователя.
-    - base_value (float): Базовое значение токенов.
-    - booster (float): Коэффициент ускорения.
-    - degradation (float): Коэффициент деградации.
-    - k (float): Плавающий коэффициент.
+    - request: объект запроса Django REST framework.
+
+    Методы:
+    - GET: Получить информацию о пользователе.
+    - PUT: Обновить информацию о пользователе.
+    - DELETE: Удалить пользователя.
 
     Возвращает:
-    - Ответ с обновленными данными пользователя (баланс, ID и т.д.).
+    - Ответ с данными пользователя в случае GET и PUT.
+    - Пустой ответ в случае успешного удаления пользователя.
+    - Ответ с ошибкой "Пользователь не найден" в случае отсутствия пользователя с указанным ID.
 
-    Если пользователь не существует, возвращает ошибку "не найдено".
+    Пример запроса GET:
+    GET /api/users/1/
+    Возвращает данные пользователя с ID=1.
+
+    Пример запроса PUT:
+    PUT /api/users/1/
+    {
+        "username": "Новое имя пользователя",
+        "email": "новаяпочта@example.com",
+        ...
+    }
+    Обновляет информацию о пользователе с ID=1.
+
+    Пример запроса DELETE:
+    DELETE /api/users/1/
+    Удаляет пользователя с ID=1.
     """
     try:
-        user_id = request.data.get('user_id')
-        base_value = request.data.get('base_value', 0)
-        booster = request.data.get('booster', 0)
-        degradation = request.data.get('degradation', 0)
-        k = request.data.get('k', 0)
+        user = request.user
 
-        # Получаем пользователя по ID
-        user = Users.objects.get(pk=user_id)
+        if user is None:
+            return Response({"error": "Can\'t find user"},
+                            status=status.HTTP_404_NOT_FOUND)
 
-        # Рассчитываем количество токенов
-        n = base_value + booster + degradation
-        result = n + n * k
+        if request.method == 'GET':
+            serializer = UsersSerializer(user)
+            token_obj = Token.objects.get(user=user)
+            token = token_obj.key
+            serializer_data = serializer.data
+            serializer_data["token"] = token
 
-        # Обновляем баланс пользователя
-        user.balance += result
-        user.save()
+            return Response(serializer_data)
+
+        elif request.method == 'PUT':
+            serializer = UsersSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        elif request.method == 'DELETE':
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def change_photo(request):
+    try:
+        user = request.user
+        values = request.data
+        db.change_photo(user, values.get("photo"))
 
         serializer = UsersSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status.HTTP_200_OK)
 
-    except Users.DoesNotExist:
-        return Response({"error": "Пользователь не найден."},
-                        status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({"error": f"Что-то пошло не так: {e}"},
-                        status=status.HTTP_400_BAD_REQUEST)
+    except Exception as ex:
+        return Response({'error': f'Something goes wrong: {ex}'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,0 +1,16 @@
+**/migrations/*.py
+!**/migrations/__init__.py
+db.sqlite3
+media
+.idea
+*.log
+*.pot
+*.pyc
+/db.sqlite3
+/env
+/Lib
+/Scripts
+pyvenv.cfg
+omtogether/.env
+identifier.sqlite
+pgdata/
