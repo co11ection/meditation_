@@ -30,7 +30,7 @@ def add_user(values: dict) -> tuple:
             raise Exception("UNIQUE constraint failed: user.phone_number")
 
     if email:
-        if CustomUser.objects.filter(email__icontains=email).exists():
+        if CustomUser.objects.filter(email__exact=email).exists():
             raise Exception("UNIQUE constraint failed: users.email")
         if not password:
             raise ValueError("Password must be provided")
@@ -65,7 +65,7 @@ def get_user(**kwargs) -> CustomUser:
     if phone_number:
         user = CustomUser.objects.filter(phone_number__contains=phone_number).first()
     elif email:
-        user = CustomUser.objects.filter(email__icontains=email).first()
+        user = CustomUser.objects.filter(email__exact=email).first()
     else:
         user = CustomUser.objects.filter(
             **kwargs

@@ -39,7 +39,7 @@ def send_phone_reset(phone):
                     "phone": phone,
                     "sender": "MediaGramma",
                     "clientId": "1",
-                    "text": "Ваш код подтверждения приложения Test: " + str(code) + ". Не говорите код!"
+                    "text": "Ваш код подтверждения приложения Omtogether: " + str(code) + ". Не говорите код!"
                 }
             ],
             "statusQueueName": "myQueue",
