@@ -33,7 +33,7 @@ def registration_get_code(request):
     """
     try:
         values = request.data
-        if not (utils.is_phone_number(values['login'])):
+        if not utils.is_phone_number(values['login']):
             return Response("login must be phone number",
                             status=status.HTTP_400_BAD_REQUEST)
         phone = values['login']
@@ -56,6 +56,46 @@ def registration_get_code(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def check_registration(request):
+    """
+       Проверка регистрации пользователя.
+
+       Параметры:
+       - login (str): Логин пользователя (номер телефона или email).
+
+
+       Возвращает:
+       - Статус регистрации пользователя.
+
+
+       Если логин не является номером телефона, возвращает ошибку неверного запроса.
+    """
+    try:
+        values = request.data
+        login = values['login']
+        is_registered = False
+        if (not utils.is_phone_number(login)) and (not utils.is_email(login)):
+            return Response("login must be phone number or email",
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if utils.is_phone_number(login) and CustomUser.objects.filter(
+                phone_number__contains=utils.ru_phone(login)):
+            is_registered = True
+
+        if utils.is_email(login) and CustomUser.objects.filter(
+                email__exact=login):
+            is_registered = True
+
+        return Response({
+            "is_registered": is_registered,
+        })
+    except Exception as ex:
+        return Response({"error": f"Something goes wrong: {ex}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def registration(request):
     """
     Регистрация нового пользователя или аутентификация существующего.
@@ -63,6 +103,7 @@ def registration(request):
     Параметры:
     - login (str): Логин пользователя (электронная почта или номер телефона).
     - fcm_token (str): Токен FCM для push-уведомлений.
+    - nickname (str):  Никнейм пользователя
 
     Возвращает:
     - Если пользователь существует, возвращает ответ с данными авторизации (токен и ID).
@@ -73,10 +114,9 @@ def registration(request):
     try:
         values = request.data
         login = values.get('login')
-        if not (utils.is_phone_number(login) or utils.is_email(login)):
-            return Response({
-                "error": "Login must be email or phone number"},
-                status=status.HTTP_400_BAD_REQUEST)
+        if (not utils.is_phone_number(login)) and (not utils.is_email(login)):
+            return Response("login must be phone number or email",
+                            status=status.HTTP_400_BAD_REQUEST)
 
         if utils.is_email(login) and 'password' in values:
             token, user = db.add_user(values)
