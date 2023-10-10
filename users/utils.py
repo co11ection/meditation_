@@ -48,8 +48,8 @@ def send_phone_reset(phone):
             "password": SMS_PASSWORD
         }
     )
-    r = requests.post('https://api.iqsms.ru/messages/v2/send.json', data=body)
-    return code, r.text
+    requests.post('https://api.iqsms.ru/messages/v2/send.json', data=body)
+    return code
 
 
 # def send_phone_code(phone):

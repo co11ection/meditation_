@@ -124,7 +124,7 @@ def registration(request):
                 "token": token,
                 "id": user.id,
             }, status=status.HTTP_201_CREATED)
-        elif utils.is_phone_number(login):
+        elif utils.is_phone_number(login) and 'password' in values:
             token, user = db.add_user(values)
             return Response({
                 "token": token,
@@ -153,7 +153,7 @@ def auth(request):
             return Response({
                 "error": "Login must be email or phone number"},
                 status=status.HTTP_400_BAD_REQUEST)
-        if utils.is_phone_number(login):
+        if utils.is_phone_number(login) and 'password' in values:
             login = utils.ru_phone(login)
             user = db.get_user(
                 login=login
@@ -177,7 +177,7 @@ def auth(request):
                 'token': token,
                 "id": user.id,
             })
-        elif utils.is_phone_number(login):
+        elif utils.is_phone_number(login) and check_password(password, user.password):
             user.fcm_token = fcm_token
             user.save()
             token_obj = Token.objects.get(user=user)
