@@ -18,15 +18,17 @@ def add_user(values: dict) -> tuple:
     - token (str): Сгенерированный токен для нового пользователя.
     - user (Users): Вновь созданный экземпляр пользователя.
     """
-    login = values['login']
-    nickname = values['nickname']
-    photo = values.get('photo')
-    password = values.get('password')
+    login = values["login"]
+    nickname = values["nickname"]
+    photo = values.get("photo")
+    password = values.get("password")
     email = login if utils.is_email(login) else None
     phone = None
     if utils.is_phone_number(login):
         phone = login
-        if CustomUser.objects.filter(phone_number__contains=utils.ru_phone(phone)).exists():
+        if CustomUser.objects.filter(
+            phone_number__contains=utils.ru_phone(phone)
+        ).exists():
             raise Exception("UNIQUE constraint failed: user.phone_number")
 
     if email:
@@ -41,7 +43,7 @@ def add_user(values: dict) -> tuple:
         password=password,
         email=email,
         phone_number=phone,
-        fcm_token=values['fcm_token']
+        fcm_token=values["fcm_token"],
     )
     logger.debug(f'Created new user with fcm token {values["fcm_token"]}')
 
@@ -67,9 +69,7 @@ def get_user(**kwargs) -> CustomUser:
     elif email:
         user = CustomUser.objects.filter(email__exact=email).first()
     else:
-        user = CustomUser.objects.filter(
-            **kwargs
-        ).first()
+        user = CustomUser.objects.filter(**kwargs).first()
     if user:
         if not user.is_active:
             raise Exception("Your account has been blocked. Please, contact support")
@@ -86,9 +86,7 @@ def reset_password1(values):
 
         user.code = code
         user.save()
-        return {
-            "login": login
-        }
+        return {"login": login}
 
     elif utils.is_phone_number(login):
         raise Exception("Login must be email to change password")
@@ -113,14 +111,9 @@ def check_code(values):
         user.save()
         token_obj = Token.objects.get(user=user)
         token = token_obj.key
-        return {
-            "is_correct": True,
-            "token": token
-        }
+        return {"is_correct": True, "token": token}
     else:
-        return {
-            "is_correct": False
-        }
+        return {"is_correct": False}
 
 
 def reset_password2(user, password):
@@ -133,9 +126,9 @@ def reset_password2(user, password):
 
 def change_photo(user, photo: str):
     if photo:
-        format, imgstr = photo.split(';base64,')
-        ext = format.split('/')[-1]
-        data = ContentFile(base64.b64decode(imgstr), name=f'{user.nickname}_ava.{ext}')
+        format, imgstr = photo.split(";base64,")
+        ext = format.split("/")[-1]
+        data = ContentFile(base64.b64decode(imgstr), name=f"{user.nickname}_ava.{ext}")
         user.photo = data
     else:
         user.photo = None

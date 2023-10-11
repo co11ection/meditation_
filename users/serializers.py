@@ -5,10 +5,10 @@ from .models import CustomUser, CodePhone
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        exclude = ('password', 'last_login')
+        exclude = ("password", "last_login")
 
 
 class CodePhoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = CodePhone
-        fields = '__all__'
+        fields = "__all__"

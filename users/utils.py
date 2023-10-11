@@ -1,15 +1,22 @@
 import re
 import requests
 import json
+
 # import vonage
 import random
 from django.core.mail import send_mail
 
-from omtogether.settings import EMAIL_HOST_USER, SMS_PASSWORD, SMS_LOGIN, SMS_KEY, SMS_SECRET_KEY
+from omtogether.settings import (
+    EMAIL_HOST_USER,
+    SMS_PASSWORD,
+    SMS_LOGIN,
+    SMS_KEY,
+    SMS_SECRET_KEY,
+)
 
 
 def is_email(string: str):
-    return re.fullmatch(r'[^@]+@[^@]+\.[^@]+', string)
+    return re.fullmatch(r"[^@]+@[^@]+\.[^@]+", string)
 
 
 def ru_phone(phone: str):
@@ -20,7 +27,10 @@ def ru_phone(phone: str):
 
 
 def is_phone_number(string: str):
-    return re.fullmatch(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}', string)
+    return re.fullmatch(
+        r"^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}",
+        string,
+    )
 
 
 # def calculate_token(login: str):
@@ -39,16 +49,18 @@ def send_phone_reset(phone):
                     "phone": phone,
                     "sender": "MediaGramma",
                     "clientId": "1",
-                    "text": "Ваш код подтверждения приложения Omtogether: " + str(code) + ". Не говорите код!"
+                    "text": "Ваш код подтверждения приложения Omtogether: "
+                    + str(code)
+                    + ". Не говорите код!",
                 }
             ],
             "statusQueueName": "myQueue",
             "showBillingDetails": True,
             "login": SMS_LOGIN,
-            "password": SMS_PASSWORD
+            "password": SMS_PASSWORD,
         }
     )
-    r = requests.post('https://api.iqsms.ru/messages/v2/send.json', data=body)
+    r = requests.post("https://api.iqsms.ru/messages/v2/send.json", data=body)
     return code, r.text
 
 
@@ -72,12 +84,13 @@ def send_phone_reset(phone):
 def send_mail_reset(email):
     code = random.SystemRandom().randint(100000, 999999)
     try:
-        send_mail('Your code',
-                  f'Введите этот код для подтверждения личности на сервисе Test:'
-                  f' {code}',
-                  EMAIL_HOST_USER,
-                  [email],
-                  fail_silently=False,)
+        send_mail(
+            "Your code",
+            f"Введите этот код для подтверждения личности на сервисе Test:" f" {code}",
+            EMAIL_HOST_USER,
+            [email],
+            fail_silently=False,
+        )
         return code
     except Exception as ex:
         return ex

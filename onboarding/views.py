@@ -37,6 +37,6 @@ class OnboardTextByTypeView(ListAPIView):
     serializer_class = OnboardingTextSerializer
 
     def get_queryset(self):
-        onboarding_type_slug = self.kwargs['onboarding_type_slug']
+        onboarding_type_slug = self.kwargs["onboarding_type_slug"]
         queryset = OnboardText.objects.filter(type__slug=onboarding_type_slug)
         return queryset

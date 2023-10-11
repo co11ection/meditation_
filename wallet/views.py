@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny
 
 from .models import WalletRatio
 from .models import WalletTokens
+
 # from .utils import calculate_group_meditation_tokens, get_balance
 from . import utils
 
@@ -24,10 +25,7 @@ class WalletTokensView(APIView):
         user = request.user
         balance = utils.get_balance(user)
 
-        response_data = {
-            "balance": balance,
-            "user": user.id
-        }
+        response_data = {"balance": balance, "user": user.id}
 
         return Response(response_data, status.HTTP_200_OK)
 
@@ -35,23 +33,26 @@ class WalletTokensView(APIView):
         """
         Покупка и отправка токенов другому пользователю.
         """
-        sender_id = request.data.get('sender_id')
-        recipient_id = request.data.get('recipient_id')
-        amount_to_send = request.data.get('amount')
+        sender_id = request.data.get("sender_id")
+        recipient_id = request.data.get("recipient_id")
+        amount_to_send = request.data.get("amount")
 
         try:
             sender = CustomUser.objects.get(id=sender_id)
             recipient = CustomUser.objects.get(id=recipient_id)
         except CustomUser.DoesNotExist:
-            return Response({'error': 'User not found'},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         if sender.send_tokens_to_user(recipient, amount_to_send):
-            return Response({'message': 'Токены успешны отправлены'},
-                            status=status.HTTP_200_OK)
+            return Response(
+                {"message": "Токены успешны отправлены"}, status=status.HTTP_200_OK
+            )
         else:
             return Response(
-                {'error': 'Недостаточно токенов на балансе отправителя'},
-                status=status.HTTP_400_BAD_REQUEST)
+                {"error": "Недостаточно токенов на балансе отправителя"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @staticmethod
     def calculate_booster(request):
@@ -89,11 +90,12 @@ class WalletTokensView(APIView):
         booster = self.calculate_booster(request)
         degradation = self.calculate_degradation()
         wallet_ratio_instance = WalletRatio.objects.first()
-        group_size = int(request.data.get('group_size', 0))
+        group_size = int(request.data.get("group_size", 0))
         group_ratio = utils.calculate_group_meditation_tokens(group_size)
 
-        earn_finish = ((wallet_ratio_instance.base_value + booster + degradation) +
-                       (wallet_ratio_instance.base_value + booster + degradation) * group_ratio)
+        earn_finish = (wallet_ratio_instance.base_value + booster + degradation) + (
+            wallet_ratio_instance.base_value + booster + degradation
+        ) * group_ratio
         individual_tokens = int(earn_finish)
 
         with transaction.atomic():
@@ -103,8 +105,10 @@ class WalletTokensView(APIView):
             else:
                 self.create_balance(user, individual_tokens)
         response_data = {
-            'tokens_earned': individual_tokens,
-            'total_balance': updated_balance if balance is not None else individual_tokens,
+            "tokens_earned": individual_tokens,
+            "total_balance": updated_balance
+            if balance is not None
+            else individual_tokens,
         }
 
         return response_data
@@ -124,6 +128,6 @@ class WalletTokensView(APIView):
 class GroupMediationTokensView(APIView):
     @staticmethod
     def post(self, request):
-        group_size = int(request.data.get('group_size', 0))
+        group_size = int(request.data.get("group_size", 0))
         earned_tokens = utils.calculate_group_meditation_tokens(group_size)
-        return Response({'earned_tokens': earned_tokens})
+        return Response({"earned_tokens": earned_tokens})

@@ -14,3 +14,6 @@ pyvenv.cfg
 omtogether/.env
 identifier.sqlite
 pgdata/
+.env
+venv/
+venv
