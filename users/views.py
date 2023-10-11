@@ -154,7 +154,6 @@ def auth(request):
                 "error": "Login must be email or phone number"},
                 status=status.HTTP_400_BAD_REQUEST)
         if utils.is_phone_number(login) and 'password' in values:
-            login = utils.ru_phone(login)
             user = db.get_user(
                 login=login
             )

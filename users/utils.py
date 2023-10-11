@@ -1,6 +1,7 @@
 import re
 import requests
 import json
+import phonenumbers
 # import vonage
 import random
 from django.core.mail import send_mail
@@ -19,8 +20,23 @@ def ru_phone(phone: str):
         return phone
 
 
+# def is_phone_number(string: str):
+#     return re.fullmatch(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}', string)
+
+
 def is_phone_number(string: str):
-    return re.fullmatch(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}', string)
+    parsed_number = phonenumbers.parse(string, None)
+    return phonenumbers.is_possible_number(parsed_number)
+
+
+# def is_phone_number_test(phone_number: str):
+#     parsed_number = phonenumbers.parse(phone_number, None)
+#     is_valid = phonenumbers.is_valid_number(parsed_number)
+#     formatted_number = phonenumbers.format_number(parsed_number,
+#                                                   phonenumbers.PhoneNumberFormat.INTERNATIONAL)
+#     print(parsed_number)
+#     print(is_valid)
+#     print(formatted_number)
 
 
 # def calculate_token(login: str):
@@ -77,7 +93,7 @@ def send_mail_reset(email):
                   f' {code}',
                   EMAIL_HOST_USER,
                   [email],
-                  fail_silently=False,)
+                  fail_silently=False, )
         return code
     except Exception as ex:
         return ex
