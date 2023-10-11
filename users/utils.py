@@ -25,8 +25,11 @@ def ru_phone(phone: str):
 
 
 def is_phone_number(string: str):
-    parsed_number = phonenumbers.parse(string, None)
-    return phonenumbers.is_possible_number(parsed_number)
+    try:
+        parsed_number = phonenumbers.parse(string, None)
+        return phonenumbers.is_possible_number(parsed_number)
+    except Exception:
+        return False
 
 
 # def is_phone_number_test(phone_number: str):
