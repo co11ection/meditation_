@@ -175,11 +175,15 @@ def auth(request):
             return Response({
                 "error": "Login must be email or phone number"},
                 status=status.HTTP_400_BAD_REQUEST)
-        if utils.is_phone_number(login):
+        if utils.is_phone_number(login) and 'password' in values:
             login = utils.ru_phone(login)
-            user = db.get_user(login=login)
-        if utils.is_email(login) and "password" in values:
-            user = db.get_user(login=login)
+            user = db.get_user(
+                login=login
+            )
+        if utils.is_email(login) and 'password' in values:
+            user = db.get_user(
+                login=login
+            )
         if user is None:
             return Response(
                 {"authorized": False, "error": "User with such login does not exists"},

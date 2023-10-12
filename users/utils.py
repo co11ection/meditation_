@@ -1,7 +1,6 @@
 import re
 import requests
 import json
-
 # import vonage
 import random
 from django.core.mail import send_mail
@@ -26,11 +25,12 @@ def ru_phone(phone: str):
         return phone
 
 
+# def is_phone_number(string: str):
+#     return re.fullmatch(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}', string)
+
+
 def is_phone_number(string: str):
-    return re.fullmatch(
-        r"^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}",
-        string,
-    )
+    return re.fullmatch(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}', string)
 
 
 # def calculate_token(login: str):
@@ -85,13 +85,12 @@ def send_phone_reset(phone):
 def send_mail_reset(email):
     code = random.SystemRandom().randint(100000, 999999)
     try:
-        send_mail(
-            "Your code",
-            f"Введите этот код для подтверждения личности на сервисе Test:" f" {code}",
-            EMAIL_HOST_USER,
-            [email],
-            fail_silently=False,
-        )
+        send_mail('Your code',
+                  f'Введите этот код для подтверждения личности на сервисе Test:'
+                  f' {code}',
+                  EMAIL_HOST_USER,
+                  [email],
+                  fail_silently=False,)
         return code
     except Exception as ex:
         return ex

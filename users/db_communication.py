@@ -26,9 +26,7 @@ def add_user(values: dict) -> tuple:
     phone = None
     if utils.is_phone_number(login):
         phone = login
-        if CustomUser.objects.filter(
-            phone_number__contains=utils.ru_phone(phone)
-        ).exists():
+        if CustomUser.objects.filter(phone_number__contains=utils.ru_phone(phone)).exists():
             raise Exception("UNIQUE constraint failed: user.phone_number")
         if not password:
             raise ValueError("Password must be provided")
@@ -63,11 +61,11 @@ def get_user(**kwargs) -> CustomUser:
     phone_number = None
     email = None
     if login:
-        phone_number = utils.ru_phone(login) if utils.is_phone_number(login) else None
+        phone_number = login if utils.is_phone_number(login) else None
         email = login if utils.is_email(login) else None
 
     if phone_number:
-        user = CustomUser.objects.filter(phone_number__contains=phone_number).first()
+        user = CustomUser.objects.filter(phone_number__exact=phone_number).first()
     elif email:
         user = CustomUser.objects.filter(email__exact=email).first()
     else:
@@ -108,11 +106,12 @@ def reset_password1(values):
 def check_code(values):
     login = values["login"]
     code = values["code"]
-    user = None
     if utils.is_email(login):
         user = get_user(login=login)
     elif utils.is_phone_number(login):
         user = get_user(login=login)
+    else:
+        raise ValidationError("Invalid login format")
     if not user:
         raise ObjectDoesNotExist
 
