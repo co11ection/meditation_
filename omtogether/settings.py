@@ -31,9 +31,11 @@ INSTALLED_APPS = [
     "onboarding.apps.OnboardingConfig",
     "meditacia.apps.MeditaciaConfig",
     "wallet.apps.WalletConfig",
+    "chat.apps.ChatConfig",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_yasg",
+    'channels',
 ]
 
 MIDDLEWARE = [
