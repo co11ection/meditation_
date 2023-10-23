@@ -27,6 +27,7 @@ urlpatterns = [
     path("api/onboard/", include("onboarding.urls")),
     path("api/meditations/", include("meditacia.urls")),
     path("api/wallet/", include("wallet.urls")),
+    path("api/chat/", include('chat.urls')),
     path(
         "api/swagger/",
         schema_view.with_ui("swagger", cache_timeout=0),
